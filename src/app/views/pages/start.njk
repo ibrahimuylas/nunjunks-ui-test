@@ -1,0 +1,17 @@
+{% extends "layouts/main.njk" %}
+{% from "govuk/components/button/macro.njk" import govukButton %}
+
+{% block content %}
+  <div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds">
+      <h1 class="govuk-heading-xl">Apply for a farming update</h1>
+      <p class="govuk-body">Use this service to give us your details and tell us whether you want to receive updates.</p>
+      <p class="govuk-body">This is an example server-rendered journey using GOV.UK Frontend, Express and Nunjucks.</p>
+      {{ govukButton({
+        text: "Start now",
+        href: "/business-type",
+        isStartButton: true
+      }) }}
+    </div>
+  </div>
+{% endblock %}

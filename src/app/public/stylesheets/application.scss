@@ -1,0 +1,16 @@
+$govuk-assets-path: "/public/assets/";
+
+@import "govuk-frontend/dist/govuk/index";
+
+.app-related-items {
+  border-top: 2px solid govuk-colour("green");
+  padding-top: govuk-spacing(3);
+}
+
+.app-js-only {
+  display: none;
+}
+
+.js-enabled .app-js-only {
+  display: block;
+}
