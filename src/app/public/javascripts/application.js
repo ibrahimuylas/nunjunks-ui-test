@@ -1,8 +1,6 @@
-document.body.classList.add('js-enabled');
+import { initAll } from './govuk-frontend.min.js';
 
-if (window.GOVUKFrontend) {
-  window.GOVUKFrontend.initAll();
-}
+initAll();
 
 const nameInput = document.querySelector('[data-module="app-name-preview"]');
 const preview = document.querySelector('[data-app-name-preview-output]');

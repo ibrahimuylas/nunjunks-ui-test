@@ -10,6 +10,31 @@ describe('journey routes', () => {
     expect(response.text).toContain('/business-type');
   });
 
+  test('pages use the supported GOV.UK Frontend module bootstrap', async () => {
+    const response = await request(createApp()).get('/start');
+
+    expect(response.status).toBe(200);
+    expect(response.text).toContain(
+      "<script>document.body.className += ' js-enabled' + ('noModule' in HTMLScriptElement.prototype ? ' govuk-frontend-supported' : '');</script>",
+    );
+    expect(response.text).toContain(
+      '<script type="module" src="/public/javascripts/application.js"></script>',
+    );
+    expect(response.text).not.toContain(
+      '<script src="/public/javascripts/govuk-frontend.min.js"></script>',
+    );
+  });
+
+  test('application module imports and initialises GOV.UK Frontend', async () => {
+    const response = await request(createApp()).get('/public/javascripts/application.js');
+
+    expect(response.status).toBe(200);
+    expect(response.text).toContain("import { initAll } from './govuk-frontend.min.js';");
+    expect(response.text).toContain('initAll();');
+    expect(response.text).toContain('[data-module="app-name-preview"]');
+    expect(response.text).toContain('[data-app-name-preview-output]');
+  });
+
   test('business type validation error is rendered', async () => {
     const response = await request(createApp()).post('/business-type').type('form').send({});
 

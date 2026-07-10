@@ -26,10 +26,9 @@ module.exports = [
     files: ['src/app/public/javascripts/application.js'],
     languageOptions: {
       ecmaVersion: 2022,
-      sourceType: 'script',
+      sourceType: 'module',
       globals: {
         document: 'readonly',
-        window: 'readonly',
       },
     },
   },

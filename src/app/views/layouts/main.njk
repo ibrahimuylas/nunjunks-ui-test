@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="/public/stylesheets/application.css">
   </head>
   <body class="govuk-template__body">
-    <script>document.body.className += ' js-enabled';</script>
+    <script>document.body.className += ' js-enabled' + ('noModule' in HTMLScriptElement.prototype ? ' govuk-frontend-supported' : '');</script>
     {% include "partials/header.njk" %}
     <div class="govuk-width-container">
       {% block beforeContent %}{% endblock %}
@@ -16,7 +16,6 @@
       </main>
     </div>
     {% include "partials/footer.njk" %}
-    <script src="/public/javascripts/govuk-frontend.min.js"></script>
-    <script src="/public/javascripts/application.js"></script>
+    <script type="module" src="/public/javascripts/application.js"></script>
   </body>
 </html>
