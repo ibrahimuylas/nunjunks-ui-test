@@ -14,6 +14,17 @@ describe('demo shell view model', () => {
     expect(model.skipLink.href).toBe('#main-content');
     expect(model.phaseBanner.tag.text).toBe('Prototype');
     expect(model.footer).toEqual({});
+    expect(model.exitThisPage).toEqual({
+      redirectUrl: 'https://www.bbc.co.uk/weather',
+    });
+    expect(model.exitThisPageSkipLink).toEqual({
+      text: 'Exit this page',
+      href: 'https://www.bbc.co.uk/weather',
+      classes: 'govuk-js-exit-this-page-skiplink',
+      attributes: {
+        rel: 'nofollow noreferrer',
+      },
+    });
     expect(model.serviceNavigation.navigation).toEqual([
       {
         text: 'Demo home',
@@ -35,6 +46,16 @@ describe('demo shell view model', () => {
       },
     ]);
   });
+
+  test.each(['home', 'casework'])(
+    'does not add the public exit action to the %s shell',
+    (navigationSection) => {
+      const model = demoShellViewModel({ pageTitle: 'Example page', navigationSection });
+
+      expect(model.exitThisPage).toBeNull();
+      expect(model.exitThisPageSkipLink).toBeNull();
+    },
+  );
 });
 
 describe('cookie banner view model', () => {

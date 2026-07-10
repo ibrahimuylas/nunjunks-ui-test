@@ -1,0 +1,35 @@
+{% extends "demo/layouts/main.njk" %}
+{% from "govuk/components/accordion/macro.njk" import govukAccordion %}
+{% from "govuk/components/button/macro.njk" import govukButton %}
+{% from "govuk/components/details/macro.njk" import govukDetails %}
+{% from "govuk/components/inset-text/macro.njk" import govukInsetText %}
+{% from "govuk/components/warning-text/macro.njk" import govukWarningText %}
+
+{% block content %}
+  <div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds">
+      <h1 class="govuk-heading-xl">Request emergency housing support</h1>
+      <p class="govuk-body-l">Explore how GOV.UK components could support a fictional housing request.</p>
+
+      <p class="govuk-body"><strong>This is a fictional demonstration. Do not enter real personal information.</strong></p>
+      <p class="govuk-body">It does not provide emergency housing support or contact a real caseworker.</p>
+
+      <h2 class="govuk-heading-l">What this fictional service covers</h2>
+      <p class="govuk-body">The demonstration includes temporary accommodation, help to stay safely at home and practical support.</p>
+      {{ govukAccordion(supportTypesAccordion) }}
+
+      <h2 class="govuk-heading-l">Before you start</h2>
+      <p class="govuk-body">You will be asked for made-up information about:</p>
+      <ul class="govuk-list govuk-list--bullet">
+        <li>your fictional personal details</li>
+        <li>the fictional support you need</li>
+        <li>an optional supporting document, which is not retained</li>
+      </ul>
+
+      {{ govukInsetText(sessionInsetText) }}
+      {{ govukWarningText(safetyWarning) }}
+      {{ govukDetails(exitGuidanceDetails) }}
+      {{ govukButton(startButton) }}
+    </div>
+  </div>
+{% endblock %}

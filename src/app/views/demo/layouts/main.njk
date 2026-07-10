@@ -1,4 +1,5 @@
 {% from "govuk/components/cookie-banner/macro.njk" import govukCookieBanner %}
+{% from "govuk/components/exit-this-page/macro.njk" import govukExitThisPage %}
 {% from "govuk/components/footer/macro.njk" import govukFooter %}
 {% from "govuk/components/header/macro.njk" import govukHeader %}
 {% from "govuk/components/phase-banner/macro.njk" import govukPhaseBanner %}
@@ -22,10 +23,16 @@
       </form>
     {% endif %}
     {{ govukSkipLink(skipLink) }}
+    {% if exitThisPageSkipLink %}
+      {{ govukSkipLink(exitThisPageSkipLink) }}
+    {% endif %}
     {{ govukHeader(header) }}
     {{ govukServiceNavigation(serviceNavigation) }}
     <div class="govuk-width-container">
       {{ govukPhaseBanner(phaseBanner) }}
+      {% if exitThisPage %}
+        {{ govukExitThisPage(exitThisPage) }}
+      {% endif %}
       {% block beforeContent %}{% endblock %}
       <main class="govuk-main-wrapper" id="main-content" role="main">
         {% block content %}{% endblock %}

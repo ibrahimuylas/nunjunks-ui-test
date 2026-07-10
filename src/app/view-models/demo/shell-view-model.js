@@ -21,6 +21,8 @@ const cookieAcknowledgements = {
   rejected: 'You rejected optional cookies for this demonstration. No optional cookies were set.',
 };
 
+const publicExitUrl = 'https://www.bbc.co.uk/weather';
+
 function cookieBannerViewModel({
   preference = null,
   acknowledgementVisible = false,
@@ -82,6 +84,8 @@ function cookieBannerViewModel({
 }
 
 function demoShellViewModel({ pageTitle, navigationSection } = {}) {
+  const isPublicJourney = navigationSection === 'support';
+
   return {
     pageTitle,
     pageTitleSuffix: 'Fictional support service demo',
@@ -109,6 +113,21 @@ function demoShellViewModel({ pageTitle, navigationSection } = {}) {
       },
       text: 'This is a fictional service for demonstrating GOV.UK components.',
     },
+    exitThisPage: isPublicJourney
+      ? {
+          redirectUrl: publicExitUrl,
+        }
+      : null,
+    exitThisPageSkipLink: isPublicJourney
+      ? {
+          text: 'Exit this page',
+          href: publicExitUrl,
+          classes: 'govuk-js-exit-this-page-skiplink',
+          attributes: {
+            rel: 'nofollow noreferrer',
+          },
+        }
+      : null,
     footer: {},
   };
 }
