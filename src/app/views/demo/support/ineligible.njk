@@ -1,0 +1,17 @@
+{% extends "demo/layouts/main.njk" %}
+
+{% block content %}
+  <div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds">
+      <h1 class="govuk-heading-xl">This fictional request cannot continue</h1>
+      <p class="govuk-body-l">This is an ineligible outcome for the component demonstration only.</p>
+      <p class="govuk-body">It is not an eligibility decision for a real service and does not affect access to real housing support.</p>
+      <p class="govuk-body">
+        <a class="govuk-link" href="{{ changeAnswerLink.href }}">{{ changeAnswerLink.text }}</a>
+      </p>
+      <p class="govuk-body">
+        <a class="govuk-link" href="{{ demoHomeLink.href }}">{{ demoHomeLink.text }}</a>
+      </p>
+    </div>
+  </div>
+{% endblock %}

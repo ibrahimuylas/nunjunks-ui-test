@@ -3,6 +3,14 @@ const individualBranchAnswers = [
   { key: 'fullName', path: '/full-name' },
   { key: 'dateOfBirth', path: '/full-name' },
 ];
+const demoSupportEligibilityBranches = Object.freeze({
+  eligible: '/demo/support/tasks',
+  ineligible: '/demo/support/ineligible',
+});
+const demoSupportPaths = Object.freeze({
+  start: '/demo/support/start',
+  eligibility: '/demo/support/eligibility',
+});
 
 function hasFarmingBusiness(answers) {
   return answers.hasFarmingBusiness === 'yes';
@@ -85,6 +93,23 @@ function getRequiredAnswersBefore(stepKey, answers) {
   return stepIndex === -1 ? requiredAnswers : requiredAnswers.slice(0, stepIndex);
 }
 
+function isDemoSupportEligibility(value) {
+  return (
+    typeof value === 'string' &&
+    Object.prototype.hasOwnProperty.call(demoSupportEligibilityBranches, value)
+  );
+}
+
+function getDemoSupportNextPath(stepKey, values = {}) {
+  if (stepKey === 'eligibility') {
+    return isDemoSupportEligibility(values.eligibility)
+      ? demoSupportEligibilityBranches[values.eligibility]
+      : demoSupportPaths.eligibility;
+  }
+
+  return demoSupportPaths.start;
+}
+
 module.exports = {
   getNextPath,
   getPreviousPath,
@@ -92,4 +117,6 @@ module.exports = {
   getRequiredAnswersBefore,
   hasFarmingBusiness,
   isIndividualApplicant,
+  getDemoSupportNextPath,
+  isDemoSupportEligibility,
 };

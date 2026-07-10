@@ -1,5 +1,6 @@
 const journeySteps = require('../config/journey-steps');
 const demoSessionService = require('./demo-session-service');
+const demoSupportService = require('./demo-support-service');
 
 function ensureJourney(session) {
   if (!session.journey) {
@@ -72,7 +73,7 @@ function isComplete(session) {
 }
 
 function getDemoSupportState(session) {
-  return demoSessionService.getSupportState(session);
+  return demoSupportService.getState(session);
 }
 
 function getDemoCaseworkState(session) {
@@ -80,7 +81,19 @@ function getDemoCaseworkState(session) {
 }
 
 function saveDemoSupportValue(session, key, value) {
+  if (key === 'eligibility') {
+    return demoSupportService.saveEligibility(session, value);
+  }
+
   demoSessionService.saveSupportValue(session, key, value);
+}
+
+function saveDemoSupportEligibility(session, eligibility) {
+  return demoSupportService.saveEligibility(session, eligibility);
+}
+
+function getDemoSupportNextPath(stepKey, session) {
+  return demoSupportService.getNextPath(stepKey, session);
 }
 
 function saveDemoCaseworkValue(session, key, value) {
@@ -117,6 +130,8 @@ module.exports = {
   getDemoSupportState,
   getDemoCaseworkState,
   saveDemoSupportValue,
+  saveDemoSupportEligibility,
+  getDemoSupportNextPath,
   saveDemoCaseworkValue,
   saveDemoSupportCompletion,
   saveDemoCaseworkCompletion,

@@ -72,6 +72,26 @@ The demo shell uses neutral fictional branding and tells visitors not to enter r
 information or passwords. Its header and service navigation always provide a route back to
 `/demo`. The existing `/start` journey and all of its URLs remain unchanged.
 
+The public journey now starts with an explicitly fictional eligibility branch:
+
+```text
+/demo/support/start
+  |
+/demo/support/eligibility
+  |
+  |-- eligible ----> /demo/support/tasks
+  |
+  |-- ineligible --> /demo/support/ineligible
+                         |
+                         v
+                 /demo/support/eligibility/change
+```
+
+The eligible destination is the stable URL for the task list delivered in the next increment.
+Changing an existing eligibility answer clears public-journey answers that depend on it; submitting
+the same answer leaves those answers intact. The branch is defined in `journey-steps.js` and applied
+through the journey-service facade.
+
 ## GOV.UK Frontend wiring
 
 GOV.UK Frontend is installed from npm. Nunjucks is configured with both the app views directory and `node_modules/govuk-frontend/dist`, so templates can import macros directly:
