@@ -15,6 +15,35 @@ describe('demo home', () => {
     expect(response.text).toContain('Explore the caseworker journey');
   });
 
+  test('renders separate POST reset actions for both scenarios', async () => {
+    const response = await request(createApp()).get('/demo');
+
+    expect(response.status).toBe(200);
+    expect(response.text).toMatch(
+      /<form\b(?=[^>]*method="post")(?=[^>]*action="\/demo\/support\/reset")[^>]*>/,
+    );
+    expect(response.text).toContain('Reset public journey');
+    expect(response.text).toMatch(
+      /<form\b(?=[^>]*method="post")(?=[^>]*action="\/demo\/casework\/reset")[^>]*>/,
+    );
+    expect(response.text).toContain('Reset caseworker journey');
+  });
+
+  test.each(['/demo/support/reset', '/demo/casework/reset'])(
+    '%s is POST-only and redirects safely to demo home',
+    async (resetPath) => {
+      const app = createApp();
+
+      await request(app).get(resetPath).expect(404);
+      await request(app)
+        .post(resetPath)
+        .type('form')
+        .send({ returnUrl: 'https://example.com' })
+        .expect(302)
+        .expect('Location', '/demo');
+    },
+  );
+
   test('renders the shared shell and navigation back to demo home', async () => {
     const response = await request(createApp()).get('/demo');
 

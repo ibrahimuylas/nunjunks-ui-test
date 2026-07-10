@@ -1,4 +1,5 @@
 {% extends "demo/layouts/main.njk" %}
+{% from "govuk/components/button/macro.njk" import govukButton %}
 
 {% block content %}
   <div class="govuk-grid-row">
@@ -12,10 +13,22 @@
       <h2 class="govuk-heading-m">Request emergency housing support</h2>
       <p class="govuk-body">Act as a member of the public making a fictional support request.</p>
       <p class="govuk-body"><a class="govuk-link" href="/demo/support/start">Explore the public journey</a></p>
+      <form method="post" action="/demo/support/reset" novalidate>
+        {{ govukButton({
+          text: "Reset public journey",
+          classes: "govuk-button--secondary"
+        }) }}
+      </form>
 
       <h2 class="govuk-heading-m">Triage support requests</h2>
       <p class="govuk-body">Act as a fictional caseworker reviewing demonstration records.</p>
       <p class="govuk-body"><a class="govuk-link" href="/demo/casework/sign-in">Explore the caseworker journey</a></p>
+      <form method="post" action="/demo/casework/reset" novalidate>
+        {{ govukButton({
+          text: "Reset caseworker journey",
+          classes: "govuk-button--secondary"
+        }) }}
+      </form>
     </div>
   </div>
 {% endblock %}
