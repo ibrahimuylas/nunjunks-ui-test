@@ -16,6 +16,71 @@ const navigationItems = [
   },
 ];
 
+const cookieAcknowledgements = {
+  accepted: 'You accepted optional cookies for this demonstration. No optional cookies were set.',
+  rejected: 'You rejected optional cookies for this demonstration. No optional cookies were set.',
+};
+
+function cookieBannerViewModel({
+  preference = null,
+  acknowledgementVisible = false,
+  returnTo = '/demo',
+} = {}) {
+  if (preference === null) {
+    return {
+      action: '/demo/cookies',
+      returnTo,
+      options: {
+        messages: [
+          {
+            headingText: 'Cookies on this component demo',
+            text: 'We only use an essential session cookie. These buttons demonstrate accepting or rejecting optional cookies, but no optional cookies are set.',
+            actions: [
+              {
+                text: 'Accept optional cookies',
+                type: 'submit',
+                name: 'cookies',
+                value: 'accept',
+              },
+              {
+                text: 'Reject optional cookies',
+                type: 'submit',
+                name: 'cookies',
+                value: 'reject',
+              },
+            ],
+          },
+        ],
+      },
+    };
+  }
+
+  if (!acknowledgementVisible || !cookieAcknowledgements[preference]) {
+    return null;
+  }
+
+  return {
+    action: '/demo/cookies',
+    returnTo,
+    options: {
+      messages: [
+        {
+          text: cookieAcknowledgements[preference],
+          role: 'alert',
+          actions: [
+            {
+              text: 'Hide cookie message',
+              type: 'submit',
+              name: 'cookies',
+              value: 'hide',
+            },
+          ],
+        },
+      ],
+    },
+  };
+}
+
 function demoShellViewModel({ pageTitle, navigationSection } = {}) {
   return {
     pageTitle,
@@ -48,4 +113,4 @@ function demoShellViewModel({ pageTitle, navigationSection } = {}) {
   };
 }
 
-module.exports = { demoShellViewModel };
+module.exports = { demoShellViewModel, cookieBannerViewModel };

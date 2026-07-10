@@ -1,6 +1,7 @@
 const DEMO_SESSION_KEY = 'demo';
 const SUPPORT_SCENARIO = 'support';
 const CASEWORK_SCENARIO = 'casework';
+const COOKIE_PREFERENCES = new Set(['accepted', 'rejected']);
 const UNSAFE_ENTRY_KEYS = new Set(['__proto__', 'constructor', 'prototype']);
 
 function createScenarioState() {
@@ -128,6 +129,34 @@ function resetCasework(session) {
   resetScenario(session, CASEWORK_SCENARIO);
 }
 
+function getCookiePreferenceState(session) {
+  const demo = isRecord(session[DEMO_SESSION_KEY]) ? session[DEMO_SESSION_KEY] : {};
+  const preference = COOKIE_PREFERENCES.has(demo.cookiePreference) ? demo.cookiePreference : null;
+
+  return {
+    preference,
+    acknowledgementVisible: preference !== null && demo.cookieAcknowledgementVisible === true,
+  };
+}
+
+function saveCookiePreference(session, preference) {
+  if (!COOKIE_PREFERENCES.has(preference)) {
+    throw new TypeError('Cookie preference must be accepted or rejected');
+  }
+
+  const demo = ensureDemoState(session);
+  demo.cookiePreference = preference;
+  demo.cookieAcknowledgementVisible = true;
+}
+
+function hideCookieAcknowledgement(session) {
+  const { preference } = getCookiePreferenceState(session);
+
+  if (preference !== null) {
+    ensureDemoState(session).cookieAcknowledgementVisible = false;
+  }
+}
+
 module.exports = {
   getSupportState,
   getCaseworkState,
@@ -137,4 +166,7 @@ module.exports = {
   saveCaseworkCompletion,
   resetSupport,
   resetCasework,
+  getCookiePreferenceState,
+  saveCookiePreference,
+  hideCookieAcknowledgement,
 };

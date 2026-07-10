@@ -1,3 +1,4 @@
+{% from "govuk/components/cookie-banner/macro.njk" import govukCookieBanner %}
 {% from "govuk/components/footer/macro.njk" import govukFooter %}
 {% from "govuk/components/header/macro.njk" import govukHeader %}
 {% from "govuk/components/phase-banner/macro.njk" import govukPhaseBanner %}
@@ -14,6 +15,12 @@
   </head>
   <body class="govuk-template__body">
     <script>document.body.className += ' js-enabled' + ('noModule' in HTMLScriptElement.prototype ? ' govuk-frontend-supported' : '');</script>
+    {% if cookieBanner %}
+      <form method="post" action="{{ cookieBanner.action }}" novalidate>
+        <input type="hidden" name="returnTo" value="{{ cookieBanner.returnTo }}">
+        {{ govukCookieBanner(cookieBanner.options) }}
+      </form>
+    {% endif %}
     {{ govukSkipLink(skipLink) }}
     {{ govukHeader(header) }}
     {{ govukServiceNavigation(serviceNavigation) }}

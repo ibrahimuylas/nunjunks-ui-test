@@ -118,6 +118,49 @@ describe('demo session service', () => {
     });
   });
 
+  test.each(['accepted', 'rejected'])(
+    'stores the allow-listed %s cookie preference as shared demo state',
+    (preference) => {
+      const session = {};
+
+      demoSessionService.saveCookiePreference(session, preference);
+
+      expect(demoSessionService.getCookiePreferenceState(session)).toEqual({
+        preference,
+        acknowledgementVisible: true,
+      });
+      expect(session.demo.cookiePreference).toBe(preference);
+      expect(session.demo.cookieAcknowledgementVisible).toBe(true);
+      expect(session.demo.support).toBeUndefined();
+      expect(session.demo.casework).toBeUndefined();
+    },
+  );
+
+  test('rejects unknown cookie preferences instead of storing request input', () => {
+    const session = {};
+
+    expect(() => demoSessionService.saveCookiePreference(session, 'maybe')).toThrow(
+      'Cookie preference must be accepted or rejected',
+    );
+    expect(demoSessionService.getCookiePreferenceState(session)).toEqual({
+      preference: null,
+      acknowledgementVisible: false,
+    });
+    expect(session).toEqual({});
+  });
+
+  test('hides the acknowledgement without removing the cookie preference', () => {
+    const session = {};
+
+    demoSessionService.saveCookiePreference(session, 'accepted');
+    demoSessionService.hideCookieAcknowledgement(session);
+
+    expect(demoSessionService.getCookiePreferenceState(session)).toEqual({
+      preference: 'accepted',
+      acknowledgementVisible: false,
+    });
+  });
+
   test('resets support without changing casework, shared demo state or the legacy journey', () => {
     const legacyJourney = { answers: { fullName: 'Legacy User' }, complete: true };
     const casework = {
@@ -141,6 +184,7 @@ describe('demo session service', () => {
     expect(session.demo.support).toEqual(emptyScenarioState());
     expect(session.demo.casework).toBe(casework);
     expect(session.demo.cookiePreference).toBe('accepted');
+    expect(demoSessionService.getCookiePreferenceState(session).preference).toBe('accepted');
     expect(session.journey).toBe(legacyJourney);
   });
 
@@ -167,6 +211,7 @@ describe('demo session service', () => {
     expect(session.demo.casework).toEqual(emptyScenarioState());
     expect(session.demo.support).toBe(support);
     expect(session.demo.cookiePreference).toBe('rejected');
+    expect(demoSessionService.getCookiePreferenceState(session).preference).toBe('rejected');
     expect(session.journey).toBe(legacyJourney);
   });
 
