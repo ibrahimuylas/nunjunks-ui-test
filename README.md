@@ -6,6 +6,7 @@ This is a server-rendered Node.js application using Express, Nunjucks, Sass and 
 
 ```bash
 npm install
+npx playwright install chromium
 npm run build
 npm run dev
 ```
@@ -24,9 +25,32 @@ PORT=3100 npm start
 npm run dev      # start with nodemon
 npm start        # start with node
 npm test         # run Jest and Supertest tests
+npm run test:browser # build, start the app and run the Chromium smoke tests
 npm run lint     # run ESLint
 npm run build    # compile Sass and copy GOV.UK assets
 ```
+
+## Browser testing
+
+The browser harness uses Playwright Test on Node.js 20 with Chromium. Install the browser once
+with `npx playwright install chromium`, then run:
+
+```bash
+npm run test:browser
+```
+
+The command builds the generated CSS, JavaScript and assets, starts a test-only server on IPv6
+loopback at `http://[::1]:3000`, and shuts it down after the tests. Using an explicit loopback
+address prevents the harness from accidentally reusing an unrelated IPv4 server. For a manual
+browser check, open `http://localhost:3000` while the test server is running.
+
+The legacy start-page smoke test runs in both JavaScript-enabled and JavaScript-disabled
+contexts. In the enhanced context it verifies the runtime markers added by GOV.UK Frontend's
+`initAll`; every context fails on unexpected browser console output or uncaught page errors.
+
+Shared desktop and mobile viewport sizes live in `tests/browser/helpers/viewports.js` for later
+journey coverage. `@axe-core/playwright` is configured with WCAG 2.2 A and AA tags, ready for the
+first automated accessibility scan in the demo-shell browser increment.
 
 ## GOV.UK Frontend wiring
 

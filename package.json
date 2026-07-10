@@ -10,8 +10,14 @@
     "build:css": "sass --load-path=node_modules src/app/public/stylesheets/application.scss src/app/public/stylesheets/application.css --style=compressed",
     "build:js": "node scripts/copy-assets.js",
     "test": "jest --runInBand",
+    "test:browser": "npm run build && playwright test --config=tests/browser/playwright.config.js",
     "lint": "eslint .",
     "format": "prettier --write ."
+  },
+  "jest": {
+    "testPathIgnorePatterns": [
+      "<rootDir>/tests/browser/"
+    ]
   },
   "engines": {
     "node": ">=20"
@@ -23,7 +29,9 @@
     "nunjucks": "^3.2.4"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.12.1",
     "@eslint/js": "^9.6.0",
+    "@playwright/test": "^1.61.1",
     "eslint": "^9.6.0",
     "jest": "^29.7.0",
     "nodemon": "^3.1.4",
