@@ -1,4 +1,5 @@
 const journeySteps = require('../config/journey-steps');
+const demoSessionService = require('./demo-session-service');
 
 function ensureJourney(session) {
   if (!session.journey) {
@@ -70,6 +71,38 @@ function isComplete(session) {
   return Boolean(ensureJourney(session).complete);
 }
 
+function getDemoSupportState(session) {
+  return demoSessionService.getSupportState(session);
+}
+
+function getDemoCaseworkState(session) {
+  return demoSessionService.getCaseworkState(session);
+}
+
+function saveDemoSupportValue(session, key, value) {
+  demoSessionService.saveSupportValue(session, key, value);
+}
+
+function saveDemoCaseworkValue(session, key, value) {
+  demoSessionService.saveCaseworkValue(session, key, value);
+}
+
+function saveDemoSupportCompletion(session, key, value) {
+  demoSessionService.saveSupportCompletion(session, key, value);
+}
+
+function saveDemoCaseworkCompletion(session, key, value) {
+  demoSessionService.saveCaseworkCompletion(session, key, value);
+}
+
+function resetDemoSupport(session) {
+  demoSessionService.resetSupport(session);
+}
+
+function resetDemoCasework(session) {
+  demoSessionService.resetCasework(session);
+}
+
 module.exports = {
   getAnswers,
   saveAnswer,
@@ -81,4 +114,12 @@ module.exports = {
   getPreviousPath,
   markComplete,
   isComplete,
+  getDemoSupportState,
+  getDemoCaseworkState,
+  saveDemoSupportValue,
+  saveDemoCaseworkValue,
+  saveDemoSupportCompletion,
+  saveDemoCaseworkCompletion,
+  resetDemoSupport,
+  resetDemoCasework,
 };
