@@ -47,10 +47,17 @@ browser check, open `http://localhost:3000` while the test server is running.
 The legacy start-page smoke test runs in both JavaScript-enabled and JavaScript-disabled
 contexts. In the enhanced context it verifies the runtime markers added by GOV.UK Frontend's
 `initAll`; every context fails on unexpected browser console output or uncaught page errors.
+The demo-shell smoke test uses the shared desktop and mobile viewport sizes in
+`tests/browser/helpers/viewports.js` to check the `/demo` landmarks, scenario entry links and
+horizontal reflow in both contexts.
 
-Shared desktop and mobile viewport sizes live in `tests/browser/helpers/viewports.js` for later
-journey coverage. `@axe-core/playwright` is configured with WCAG 2.2 A and AA tags, ready for the
-first automated accessibility scan in the demo-shell browser increment.
+Playwright with Chromium was selected for real-browser interaction because it can exercise the
+same server-rendered page with and without JavaScript. `@axe-core/playwright` was selected for a
+repeatable automated WCAG 2.2 A and AA smoke scan of the rendered shared shell. The automated scan
+runs in the desktop JavaScript-enabled context because Axe's rule runner requires browser script
+timers; separate smoke coverage proves the same shell with JavaScript disabled. It is a regression
+check, not a complete accessibility assessment: manual review remains required before public
+sharing, including keyboard, screen-reader, zoom/reflow and content-safety checks.
 
 ## GOV.UK component demo
 
