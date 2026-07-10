@@ -2,6 +2,7 @@ const path = require('path');
 const express = require('express');
 const session = require('express-session');
 const nunjucks = require('nunjucks');
+const demoRoutes = require('./routes/demo-routes');
 const routes = require('./routes');
 
 function createApp() {
@@ -36,6 +37,7 @@ function createApp() {
   );
 
   app.use('/public', express.static(path.join(__dirname, 'public')));
+  app.use('/demo', demoRoutes);
   app.use(routes);
 
   app.use((req, res) => {

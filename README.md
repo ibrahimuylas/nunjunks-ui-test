@@ -52,6 +52,19 @@ Shared desktop and mobile viewport sizes live in `tests/browser/helpers/viewport
 journey coverage. `@axe-core/playwright` is configured with WCAG 2.2 A and AA tags, ready for the
 first automated accessibility scan in the demo-shell browser increment.
 
+## GOV.UK component demo
+
+The fictional component demo is separate from the existing example journey and uses the `/demo`
+namespace. Open `/demo` to choose between these stable scenario entry points:
+
+- `/demo/support/start` — the public support-request journey
+- `/demo/casework/sign-in` — the caseworker triage journey
+
+The landing page links to both entry points; their journey pages are delivered in later increments.
+The demo shell uses neutral fictional branding and tells visitors not to enter real personal
+information or passwords. Its header and service navigation always provide a route back to
+`/demo`. The existing `/start` journey and all of its URLs remain unchanged.
+
 ## GOV.UK Frontend wiring
 
 GOV.UK Frontend is installed from npm. Nunjucks is configured with both the app views directory and `node_modules/govuk-frontend/dist`, so templates can import macros directly:

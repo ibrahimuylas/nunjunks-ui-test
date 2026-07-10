@@ -1,0 +1,30 @@
+{% from "govuk/components/footer/macro.njk" import govukFooter %}
+{% from "govuk/components/header/macro.njk" import govukHeader %}
+{% from "govuk/components/phase-banner/macro.njk" import govukPhaseBanner %}
+{% from "govuk/components/service-navigation/macro.njk" import govukServiceNavigation %}
+{% from "govuk/components/skip-link/macro.njk" import govukSkipLink %}
+
+<!doctype html>
+<html lang="en" class="govuk-template">
+  <head>
+    <meta charset="utf-8">
+    <title>{{ pageTitle }} - {{ pageTitleSuffix }}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <link rel="stylesheet" href="/public/stylesheets/application.css">
+  </head>
+  <body class="govuk-template__body">
+    <script>document.body.className += ' js-enabled' + ('noModule' in HTMLScriptElement.prototype ? ' govuk-frontend-supported' : '');</script>
+    {{ govukSkipLink(skipLink) }}
+    {{ govukHeader(header) }}
+    {{ govukServiceNavigation(serviceNavigation) }}
+    <div class="govuk-width-container">
+      {{ govukPhaseBanner(phaseBanner) }}
+      {% block beforeContent %}{% endblock %}
+      <main class="govuk-main-wrapper" id="main-content" role="main">
+        {% block content %}{% endblock %}
+      </main>
+    </div>
+    {{ govukFooter(footer) }}
+    <script type="module" src="/public/javascripts/application.js"></script>
+  </body>
+</html>
