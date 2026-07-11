@@ -96,6 +96,26 @@ function getDemoSupportNextPath(stepKey, session) {
   return demoSupportService.getNextPath(stepKey, session);
 }
 
+function getDemoSupportTaskStates(session) {
+  return demoSupportService.getTaskStates(session);
+}
+
+function getDemoSupportAccessRedirect(stepKey, session) {
+  return demoSupportService.getAccessRedirect(stepKey, session);
+}
+
+function getDemoSupportFirstIncompletePath(session) {
+  return demoSupportService.getFirstIncompletePath(session);
+}
+
+function markDemoSupportStepVisited(session, stepKey) {
+  demoSupportService.markStepVisited(session, stepKey);
+}
+
+function markDemoSupportStepCompleted(session, stepKey) {
+  demoSupportService.markStepCompleted(session, stepKey);
+}
+
 function saveDemoCaseworkValue(session, key, value) {
   demoSessionService.saveCaseworkValue(session, key, value);
 }
@@ -131,7 +151,12 @@ module.exports = {
   getDemoCaseworkState,
   saveDemoSupportValue,
   saveDemoSupportEligibility,
+  getDemoSupportAccessRedirect,
+  getDemoSupportFirstIncompletePath,
   getDemoSupportNextPath,
+  getDemoSupportTaskStates,
+  markDemoSupportStepCompleted,
+  markDemoSupportStepVisited,
   saveDemoCaseworkValue,
   saveDemoSupportCompletion,
   saveDemoCaseworkCompletion,

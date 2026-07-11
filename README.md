@@ -87,10 +87,18 @@ The public journey now starts with an explicitly fictional eligibility branch:
                  /demo/support/eligibility/change
 ```
 
-The eligible destination is the stable URL for the task list delivered in the next increment.
+The eligible destination is the public application task list.
 Changing an existing eligibility answer clears public-journey answers that depend on it; submitting
 the same answer leaves those answers intact. The branch is defined in `journey-steps.js` and applied
 through the journey-service facade.
+
+Eligible visitors can now open `/demo/support/tasks`. `About you`, `Support needs` and `Evidence`
+are available in any order and move from `Not started` to `In progress` when visited, then to
+`Completed` only after the section is validly completed. The optional evidence file does not make
+the section optional: visitors explicitly complete it with or without a file. `Check your answers`
+remains at `Cannot start yet` until all three sections are complete, and direct skip attempts redirect
+to the first incomplete section in the order shown. Every section route requires the eligible
+branch answer.
 
 ## GOV.UK Frontend wiring
 

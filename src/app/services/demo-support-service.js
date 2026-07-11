@@ -25,4 +25,44 @@ function getNextPath(stepKey, session) {
   return journeySteps.getDemoSupportNextPath(stepKey, getState(session).values);
 }
 
-module.exports = { getState, saveEligibility, getNextPath };
+function getTaskStates(session) {
+  return journeySteps.getDemoSupportTaskStates(getState(session));
+}
+
+function getAccessRedirect(stepKey, session) {
+  return journeySteps.getDemoSupportAccessRedirect(stepKey, getState(session));
+}
+
+function getFirstIncompletePath(session) {
+  return journeySteps.getDemoSupportFirstIncompletePath(getState(session));
+}
+
+function assertTaskKey(stepKey) {
+  if (!journeySteps.isDemoSupportTaskKey(stepKey)) {
+    throw new TypeError('Demo support task key must be allow-listed');
+  }
+}
+
+function markStepVisited(session, stepKey) {
+  assertTaskKey(stepKey);
+
+  if (getState(session).completion[stepKey] !== true) {
+    demoSessionService.saveSupportCompletion(session, stepKey, false);
+  }
+}
+
+function markStepCompleted(session, stepKey) {
+  assertTaskKey(stepKey);
+  demoSessionService.saveSupportCompletion(session, stepKey, true);
+}
+
+module.exports = {
+  getAccessRedirect,
+  getFirstIncompletePath,
+  getNextPath,
+  getState,
+  getTaskStates,
+  markStepCompleted,
+  markStepVisited,
+  saveEligibility,
+};

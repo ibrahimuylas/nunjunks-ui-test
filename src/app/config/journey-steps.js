@@ -3,14 +3,7 @@ const individualBranchAnswers = [
   { key: 'fullName', path: '/full-name' },
   { key: 'dateOfBirth', path: '/full-name' },
 ];
-const demoSupportEligibilityBranches = Object.freeze({
-  eligible: '/demo/support/tasks',
-  ineligible: '/demo/support/ineligible',
-});
-const demoSupportPaths = Object.freeze({
-  start: '/demo/support/start',
-  eligibility: '/demo/support/eligibility',
-});
+const demoSupportSteps = require('./demo-support-steps');
 
 function hasFarmingBusiness(answers) {
   return answers.hasFarmingBusiness === 'yes';
@@ -94,20 +87,27 @@ function getRequiredAnswersBefore(stepKey, answers) {
 }
 
 function isDemoSupportEligibility(value) {
-  return (
-    typeof value === 'string' &&
-    Object.prototype.hasOwnProperty.call(demoSupportEligibilityBranches, value)
-  );
+  return demoSupportSteps.isDemoSupportEligibility(value);
 }
 
 function getDemoSupportNextPath(stepKey, values = {}) {
-  if (stepKey === 'eligibility') {
-    return isDemoSupportEligibility(values.eligibility)
-      ? demoSupportEligibilityBranches[values.eligibility]
-      : demoSupportPaths.eligibility;
-  }
+  return demoSupportSteps.getDemoSupportNextPath(stepKey, values);
+}
 
-  return demoSupportPaths.start;
+function getDemoSupportTaskStates(state = {}) {
+  return demoSupportSteps.getDemoSupportTaskStates(state);
+}
+
+function getDemoSupportAccessRedirect(stepKey, state = {}) {
+  return demoSupportSteps.getDemoSupportAccessRedirect(stepKey, state);
+}
+
+function getDemoSupportFirstIncompletePath(state = {}) {
+  return demoSupportSteps.getFirstIncompleteRequiredPath(state);
+}
+
+function isDemoSupportTaskKey(stepKey) {
+  return demoSupportSteps.isDemoSupportTaskKey(stepKey);
 }
 
 module.exports = {
@@ -117,6 +117,10 @@ module.exports = {
   getRequiredAnswersBefore,
   hasFarmingBusiness,
   isIndividualApplicant,
+  getDemoSupportAccessRedirect,
+  getDemoSupportFirstIncompletePath,
   getDemoSupportNextPath,
+  getDemoSupportTaskStates,
   isDemoSupportEligibility,
+  isDemoSupportTaskKey,
 };

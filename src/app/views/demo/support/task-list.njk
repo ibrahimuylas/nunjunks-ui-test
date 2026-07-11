@@ -1,0 +1,18 @@
+{% extends "demo/layouts/main.njk" %}
+{% from "govuk/components/back-link/macro.njk" import govukBackLink %}
+{% from "govuk/components/task-list/macro.njk" import govukTaskList %}
+
+{% block beforeContent %}
+  {{ govukBackLink(backLink) }}
+{% endblock %}
+
+{% block content %}
+  <div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds">
+      <h1 class="govuk-heading-xl">{{ heading }}</h1>
+      <p class="govuk-body-l">Complete the fictional support request sections.</p>
+      <p class="govuk-body">You can complete the first 3 sections in any order. You must complete each section before you can check your answers.</p>
+      {{ govukTaskList(taskList) }}
+    </div>
+  </div>
+{% endblock %}
