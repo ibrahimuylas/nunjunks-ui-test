@@ -124,6 +124,10 @@ function completeDemoSupportNeeds(session, supportNeeds) {
   demoSupportService.completeSupportNeeds(session, supportNeeds);
 }
 
+function completeDemoSupportEvidence(session, evidence) {
+  demoSupportService.completeEvidence(session, evidence);
+}
+
 function saveDemoCaseworkValue(session, key, value) {
   demoSessionService.saveCaseworkValue(session, key, value);
 }
@@ -164,6 +168,7 @@ module.exports = {
   getDemoSupportNextPath,
   getDemoSupportTaskStates,
   completeDemoSupportAboutYou,
+  completeDemoSupportEvidence,
   completeDemoSupportNeeds,
   markDemoSupportStepCompleted,
   markDemoSupportStepVisited,

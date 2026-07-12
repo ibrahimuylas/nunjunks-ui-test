@@ -60,6 +60,24 @@ describe('demo support service', () => {
     });
   });
 
+  test.each([
+    ['a safe filename', { filename: 'fictional-evidence.pdf' }],
+    ['an explicit no-file choice', { filename: null }],
+  ])('stores only %s and completes the evidence task together', (description, evidence) => {
+    const session = {};
+
+    journeyService.completeDemoSupportEvidence(session, evidence);
+
+    expect(journeyService.getDemoSupportState(session)).toEqual({
+      values: { evidence },
+      completion: { evidence: true },
+    });
+    expect(Object.keys(session.demo.support.values.evidence)).toEqual(['filename']);
+    expect(session.demo.support.values.evidence).not.toHaveProperty('buffer');
+    expect(session.demo.support.values.evidence).not.toHaveProperty('path');
+    expect(session.demo.support.values.evidence).not.toHaveProperty('contents');
+  });
+
   test('keeps downstream support state when eligibility is submitted unchanged', () => {
     const support = {
       values: {

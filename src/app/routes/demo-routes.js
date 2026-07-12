@@ -2,6 +2,7 @@ const express = require('express');
 const cookieController = require('../controllers/demo/cookie-controller');
 const homeController = require('../controllers/demo/home-controller');
 const aboutYouController = require('../controllers/demo/support/about-you-controller');
+const evidenceController = require('../controllers/demo/support/evidence-controller');
 const eligibilityController = require('../controllers/demo/support/eligibility-controller');
 const supportStartController = require('../controllers/demo/support/start-controller');
 const supportNeedsController = require('../controllers/demo/support/support-needs-controller');
@@ -27,6 +28,12 @@ router.use('/support/support-needs', taskListController.requireSupportStep('supp
 router.get('/support/support-needs', supportNeedsController.showSupportNeeds);
 router.post('/support/support-needs', supportNeedsController.submitSupportNeeds);
 router.use('/support/evidence', taskListController.requireSupportStep('evidence'));
+router.get('/support/evidence', evidenceController.showEvidence);
+router.post(
+  '/support/evidence',
+  evidenceController.parseEvidenceUpload,
+  evidenceController.submitEvidence,
+);
 router.use('/support/check-answers', taskListController.requireSupportStep('checkAnswers'));
 router.post('/support/reset', homeController.resetSupport);
 router.post('/casework/reset', homeController.resetCasework);

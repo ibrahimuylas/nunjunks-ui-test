@@ -66,8 +66,14 @@ function completeSupportNeeds(session, supportNeeds) {
   markStepCompleted(session, 'supportNeeds');
 }
 
+function completeEvidence(session, evidence) {
+  demoSessionService.saveSupportValue(session, 'evidence', evidence);
+  markStepCompleted(session, 'evidence');
+}
+
 module.exports = {
   completeAboutYou,
+  completeEvidence,
   completeSupportNeeds,
   getAccessRedirect,
   getFirstIncompletePath,

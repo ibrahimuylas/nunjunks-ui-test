@@ -100,6 +100,11 @@ remains at `Cannot start yet` until all three sections are complete, and direct 
 to the first incomplete section in the order shown. Every section route requires the eligible
 branch answer.
 
+The evidence page accepts one optional demonstration file with PDF, JPG or PNG metadata up to
+2 MB. Its route-scoped multipart parser drains and discards file bytes without buffering them or
+writing them to disk; only a sanitized base filename is kept in the current support session. This
+is a component demonstration, not a production upload or content-scanning service.
+
 ## GOV.UK Frontend wiring
 
 GOV.UK Frontend is installed from npm. Nunjucks is configured with both the app views directory and `node_modules/govuk-frontend/dist`, so templates can import macros directly:
