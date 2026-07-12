@@ -120,6 +120,10 @@ function completeDemoSupportAboutYou(session, aboutYou) {
   demoSupportService.completeAboutYou(session, aboutYou);
 }
 
+function completeDemoSupportNeeds(session, supportNeeds) {
+  demoSupportService.completeSupportNeeds(session, supportNeeds);
+}
+
 function saveDemoCaseworkValue(session, key, value) {
   demoSessionService.saveCaseworkValue(session, key, value);
 }
@@ -160,6 +164,7 @@ module.exports = {
   getDemoSupportNextPath,
   getDemoSupportTaskStates,
   completeDemoSupportAboutYou,
+  completeDemoSupportNeeds,
   markDemoSupportStepCompleted,
   markDemoSupportStepVisited,
   saveDemoCaseworkValue,

@@ -1,7 +1,7 @@
 const journeySteps = require('../../src/app/config/journey-steps');
 const journeyService = require('../../src/app/services/journey-service');
 
-describe('demo support eligibility service', () => {
+describe('demo support service', () => {
   test.each([
     ['eligible', '/demo/support/tasks'],
     ['ineligible', '/demo/support/ineligible'],
@@ -42,6 +42,22 @@ describe('demo support eligibility service', () => {
       '/demo/support/eligibility',
     );
     expect(journeySteps.getDemoSupportNextPath('unknown', {})).toBe('/demo/support/start');
+  });
+
+  test('stores a validated support-needs section and completes its task together', () => {
+    const session = {};
+    const supportNeeds = {
+      supportTypes: ['safe-accommodation', 'wellbeing'],
+      description: 'A fictional household needs somewhere safe to stay.',
+      additionalInformation: '',
+    };
+
+    journeyService.completeDemoSupportNeeds(session, supportNeeds);
+
+    expect(journeyService.getDemoSupportState(session)).toEqual({
+      values: { supportNeeds },
+      completion: { supportNeeds: true },
+    });
   });
 
   test('keeps downstream support state when eligibility is submitted unchanged', () => {

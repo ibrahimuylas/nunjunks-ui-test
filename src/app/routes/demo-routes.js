@@ -4,6 +4,7 @@ const homeController = require('../controllers/demo/home-controller');
 const aboutYouController = require('../controllers/demo/support/about-you-controller');
 const eligibilityController = require('../controllers/demo/support/eligibility-controller');
 const supportStartController = require('../controllers/demo/support/start-controller');
+const supportNeedsController = require('../controllers/demo/support/support-needs-controller');
 const taskListController = require('../controllers/demo/support/task-list-controller');
 
 const router = express.Router();
@@ -23,6 +24,8 @@ router.use('/support/about-you', taskListController.requireSupportStep('aboutYou
 router.get('/support/about-you', aboutYouController.showAboutYou);
 router.post('/support/about-you', aboutYouController.submitAboutYou);
 router.use('/support/support-needs', taskListController.requireSupportStep('supportNeeds'));
+router.get('/support/support-needs', supportNeedsController.showSupportNeeds);
+router.post('/support/support-needs', supportNeedsController.submitSupportNeeds);
 router.use('/support/evidence', taskListController.requireSupportStep('evidence'));
 router.use('/support/check-answers', taskListController.requireSupportStep('checkAnswers'));
 router.post('/support/reset', homeController.resetSupport);
