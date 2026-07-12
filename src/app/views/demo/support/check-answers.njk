@@ -1,0 +1,23 @@
+{% extends "demo/layouts/main.njk" %}
+{% from "govuk/components/back-link/macro.njk" import govukBackLink %}
+{% from "govuk/components/button/macro.njk" import govukButton %}
+{% from "govuk/components/summary-list/macro.njk" import govukSummaryList %}
+
+{% block beforeContent %}
+  {{ govukBackLink(backLink) }}
+{% endblock %}
+
+{% block content %}
+  <div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds">
+      <h1 class="govuk-heading-xl">{{ heading }}</h1>
+      <p class="govuk-body">Check the fictional information before submitting the demonstration request.</p>
+      {% for summaryList in summaryLists %}
+        {{ govukSummaryList(summaryList) }}
+      {% endfor %}
+      <form method="post" action="{{ formAction }}" novalidate>
+        {{ govukButton(submitButton) }}
+      </form>
+    </div>
+  </div>
+{% endblock %}
