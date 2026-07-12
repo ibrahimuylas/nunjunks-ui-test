@@ -56,7 +56,13 @@ function markStepCompleted(session, stepKey) {
   demoSessionService.saveSupportCompletion(session, stepKey, true);
 }
 
+function completeAboutYou(session, aboutYou) {
+  demoSessionService.saveSupportValue(session, 'aboutYou', aboutYou);
+  markStepCompleted(session, 'aboutYou');
+}
+
 module.exports = {
+  completeAboutYou,
   getAccessRedirect,
   getFirstIncompletePath,
   getNextPath,

@@ -116,6 +116,10 @@ function markDemoSupportStepCompleted(session, stepKey) {
   demoSupportService.markStepCompleted(session, stepKey);
 }
 
+function completeDemoSupportAboutYou(session, aboutYou) {
+  demoSupportService.completeAboutYou(session, aboutYou);
+}
+
 function saveDemoCaseworkValue(session, key, value) {
   demoSessionService.saveCaseworkValue(session, key, value);
 }
@@ -155,6 +159,7 @@ module.exports = {
   getDemoSupportFirstIncompletePath,
   getDemoSupportNextPath,
   getDemoSupportTaskStates,
+  completeDemoSupportAboutYou,
   markDemoSupportStepCompleted,
   markDemoSupportStepVisited,
   saveDemoCaseworkValue,

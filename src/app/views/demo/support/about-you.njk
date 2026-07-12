@@ -1,0 +1,29 @@
+{% extends "demo/layouts/main.njk" %}
+{% from "govuk/components/back-link/macro.njk" import govukBackLink %}
+{% from "govuk/components/button/macro.njk" import govukButton %}
+{% from "govuk/components/date-input/macro.njk" import govukDateInput %}
+{% from "govuk/components/error-summary/macro.njk" import govukErrorSummary %}
+{% from "govuk/components/input/macro.njk" import govukInput %}
+{% from "govuk/components/select/macro.njk" import govukSelect %}
+
+{% block beforeContent %}
+  {{ govukBackLink(backLink) }}
+{% endblock %}
+
+{% block content %}
+  <div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds">
+      {% if errorSummary %}
+        {{ govukErrorSummary(errorSummary) }}
+      {% endif %}
+      <h1 class="govuk-heading-xl">{{ heading }}</h1>
+      <p class="govuk-body">Use fictional details only. Do not enter information about a real person.</p>
+      <form method="post" action="{{ formAction }}" novalidate>
+        {{ govukInput(fullNameInput) }}
+        {{ govukDateInput(dateOfBirthInput) }}
+        {{ govukSelect(countrySelect) }}
+        {{ govukButton({ text: "Save and continue" }) }}
+      </form>
+    </div>
+  </div>
+{% endblock %}
