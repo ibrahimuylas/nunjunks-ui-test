@@ -43,7 +43,12 @@ describe('demo support eligibility page view model', () => {
   });
 
   test('prepares the dedicated ineligible change route without accepting a return URL', () => {
-    const model = supportEligibilityPageViewModel({ eligibility: 'ineligible', change: true });
+    const model = supportEligibilityPageViewModel({
+      eligibility: 'ineligible',
+      change: true,
+      backLinkHref: '/demo/support/ineligible',
+      formAction: '/demo/support/eligibility/change',
+    });
 
     expect(model.backLink.href).toBe('/demo/support/ineligible');
     expect(model.formAction).toBe('/demo/support/eligibility/change');

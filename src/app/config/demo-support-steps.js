@@ -14,6 +14,13 @@ const demoSupportEligibilityBranches = Object.freeze({
   ineligible: demoSupportPaths.ineligible,
 });
 
+const demoSupportChangePaths = Object.freeze({
+  eligibility: '/demo/support/eligibility/change',
+  aboutYou: '/demo/support/about-you/change',
+  supportNeeds: '/demo/support/support-needs/change',
+  evidence: '/demo/support/evidence/change',
+});
+
 const demoSupportTaskStatuses = Object.freeze({
   notStarted: 'not-started',
   inProgress: 'in-progress',
@@ -72,6 +79,18 @@ function isDemoSupportEligibility(value) {
 
 function isDemoSupportTaskKey(stepKey) {
   return demoSupportTaskSteps.some((step) => step.key === stepKey);
+}
+
+function getDemoSupportPath(stepKey) {
+  return Object.prototype.hasOwnProperty.call(demoSupportPaths, stepKey)
+    ? demoSupportPaths[stepKey]
+    : null;
+}
+
+function getDemoSupportChangePath(stepKey) {
+  return Object.prototype.hasOwnProperty.call(demoSupportChangePaths, stepKey)
+    ? demoSupportChangePaths[stepKey]
+    : null;
 }
 
 function getDemoSupportNextPath(stepKey, values = {}) {
@@ -147,10 +166,13 @@ function getDemoSupportAccessRedirect(stepKey, state = {}) {
 }
 
 module.exports = {
+  demoSupportChangePaths,
   demoSupportPaths,
   demoSupportTaskStatuses,
   getDemoSupportAccessRedirect,
+  getDemoSupportChangePath,
   getDemoSupportNextPath,
+  getDemoSupportPath,
   getDemoSupportTaskStates,
   getFirstIncompleteRequiredPath,
   isDemoSupportEligibility,

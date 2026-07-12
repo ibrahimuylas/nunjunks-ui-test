@@ -4,7 +4,12 @@ const {
 } = require('../../../config/demo-support-countries');
 const { demoShellViewModel } = require('../shell-view-model');
 
-function supportAboutYouPageViewModel({ values = {}, errors = {} } = {}) {
+function supportAboutYouPageViewModel({
+  values = {},
+  errors = {},
+  backLinkHref = '/demo/support/tasks',
+  formAction = '/demo/support/about-you',
+} = {}) {
   const dateOfBirth = values.dateOfBirth || {};
   const errorList = Object.values(errors);
 
@@ -15,7 +20,7 @@ function supportAboutYouPageViewModel({ values = {}, errors = {} } = {}) {
     }),
     backLink: {
       text: 'Back',
-      href: '/demo/support/tasks',
+      href: backLinkHref,
     },
     heading: 'About you',
     errorSummary: errorList.length
@@ -24,7 +29,7 @@ function supportAboutYouPageViewModel({ values = {}, errors = {} } = {}) {
           errorList,
         }
       : null,
-    formAction: '/demo/support/about-you',
+    formAction,
     fullNameInput: {
       id: 'fullName',
       name: 'fullName',

@@ -40,47 +40,103 @@ function getSavedEvidence(session) {
   return journeyService.getDemoSupportState(session).values.evidence || {};
 }
 
-function renderEvidenceError(req, res, errors) {
+function pageViewModelOptions(session, { values, errors, change }) {
+  return {
+    values,
+    errors,
+    ...(change
+      ? {
+          backLinkHref: journeyService.getDemoSupportChangeReturnPath('evidence', session),
+          formAction: journeyService.getDemoSupportChangePath('evidence'),
+        }
+      : {}),
+  };
+}
+
+function renderEvidenceError(req, res, errors, { change = false } = {}) {
   return res.status(400).render(
     'demo/support/evidence.njk',
-    supportEvidencePageViewModel({
-      values: getSavedEvidence(req.session),
-      errors,
-    }),
+    supportEvidencePageViewModel(
+      pageViewModelOptions(req.session, {
+        values: getSavedEvidence(req.session),
+        errors,
+        change,
+      }),
+    ),
   );
 }
 
-function showEvidence(req, res) {
+function show(req, res, { change = false } = {}) {
   journeyService.markDemoSupportStepVisited(req.session, 'evidence');
 
   return res.render(
     'demo/support/evidence.njk',
-    supportEvidencePageViewModel({ values: getSavedEvidence(req.session) }),
+    supportEvidencePageViewModel(
+      pageViewModelOptions(req.session, {
+        values: getSavedEvidence(req.session),
+        change,
+      }),
+    ),
   );
 }
 
-function parseEvidenceUpload(req, res, next) {
+function parseUpload(req, res, next, { change = false } = {}) {
   journeyService.markDemoSupportStepVisited(req.session, 'evidence');
 
   return evidenceUpload(req, res, (error) => {
     if (error) {
-      return renderEvidenceError(req, res, evidenceParserErrors(error));
+      return renderEvidenceError(req, res, evidenceParserErrors(error), { change });
     }
 
     return next();
   });
 }
 
-function submitEvidence(req, res) {
+function submit(req, res, { change = false } = {}) {
   const validation = validateEvidence(req.file);
   delete req.file;
 
   if (!validation.isValid) {
-    return renderEvidenceError(req, res, validation.errors);
+    return renderEvidenceError(req, res, validation.errors, { change });
   }
 
   journeyService.completeDemoSupportEvidence(req.session, validation.value);
-  return res.redirect('/demo/support/tasks');
+  return res.redirect(
+    change
+      ? journeyService.getDemoSupportChangeReturnPath('evidence', req.session)
+      : '/demo/support/tasks',
+  );
 }
 
-module.exports = { parseEvidenceUpload, showEvidence, submitEvidence };
+function showEvidence(req, res) {
+  return show(req, res);
+}
+
+function showEvidenceChange(req, res) {
+  return show(req, res, { change: true });
+}
+
+function parseEvidenceUpload(req, res, next) {
+  return parseUpload(req, res, next);
+}
+
+function parseEvidenceChangeUpload(req, res, next) {
+  return parseUpload(req, res, next, { change: true });
+}
+
+function submitEvidence(req, res) {
+  return submit(req, res);
+}
+
+function submitEvidenceChange(req, res) {
+  return submit(req, res, { change: true });
+}
+
+module.exports = {
+  parseEvidenceChangeUpload,
+  parseEvidenceUpload,
+  showEvidence,
+  showEvidenceChange,
+  submitEvidence,
+  submitEvidenceChange,
+};

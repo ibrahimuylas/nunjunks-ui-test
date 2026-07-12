@@ -44,6 +44,72 @@ describe('demo support service', () => {
     expect(journeySteps.getDemoSupportNextPath('unknown', {})).toBe('/demo/support/start');
   });
 
+  test('allow-lists fixed change routes and never derives a destination from request input', () => {
+    const session = {
+      demo: {
+        support: {
+          values: { eligibility: 'eligible' },
+          completion: { aboutYou: true, supportNeeds: true, evidence: true },
+        },
+      },
+    };
+
+    expect(journeyService.getDemoSupportChangePath('eligibility')).toBe(
+      '/demo/support/eligibility/change',
+    );
+    expect(journeyService.getDemoSupportChangePath('aboutYou')).toBe(
+      '/demo/support/about-you/change',
+    );
+    expect(journeyService.getDemoSupportChangePath('supportNeeds')).toBe(
+      '/demo/support/support-needs/change',
+    );
+    expect(journeyService.getDemoSupportChangePath('evidence')).toBe(
+      '/demo/support/evidence/change',
+    );
+    expect(journeyService.getDemoSupportChangeReturnPath('eligibility', session)).toBe(
+      '/demo/support/check-answers',
+    );
+    expect(journeyService.getDemoSupportChangeReturnPath('aboutYou', session)).toBe(
+      '/demo/support/check-answers',
+    );
+    expect(() => journeyService.getDemoSupportChangePath('https://example.com')).toThrow(
+      'Demo support change step key must be allow-listed',
+    );
+    expect(journeyService.getDemoSupportChangeReturnPath('eligibility', {})).toBe(
+      '/demo/support/eligibility',
+    );
+    expect(journeyService.getDemoSupportChangeReturnPath('aboutYou', {})).toBe(
+      '/demo/support/eligibility',
+    );
+  });
+
+  test('routes eligibility changes to the outcome or first incomplete task', () => {
+    const session = {
+      demo: {
+        support: {
+          values: { eligibility: 'eligible', aboutYou: { fullName: 'Alex Example' } },
+          completion: { aboutYou: true, supportNeeds: true, evidence: true },
+        },
+      },
+    };
+
+    journeyService.saveDemoSupportEligibility(session, 'ineligible');
+    expect(journeyService.getDemoSupportChangeReturnPath('eligibility', session)).toBe(
+      '/demo/support/ineligible',
+    );
+
+    journeyService.saveDemoSupportEligibility(session, 'eligible');
+    expect(journeyService.getDemoSupportChangeReturnPath('eligibility', session)).toBe(
+      '/demo/support/about-you',
+    );
+    expect(journeyService.getDemoSupportTaskStates(session).map((task) => task.status)).toEqual([
+      'not-started',
+      'not-started',
+      'not-started',
+      'cannot-start-yet',
+    ]);
+  });
+
   test('stores a validated support-needs section and completes its task together', () => {
     const session = {};
     const supportNeeds = {

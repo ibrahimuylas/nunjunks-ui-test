@@ -1,4 +1,5 @@
 const { demoSupportCountries } = require('../../../config/demo-support-countries');
+const { getDemoSupportChangePath } = require('../../../config/demo-support-steps');
 const { demoSupportTypes } = require('../../../config/demo-support-types');
 const { demoShellViewModel } = require('../shell-view-model');
 
@@ -80,7 +81,7 @@ function supportCheckAnswersPageViewModel({ values }) {
         summaryRow(
           'Can this fictional support request continue?',
           'Yes',
-          '/demo/support/eligibility',
+          getDemoSupportChangePath('eligibility'),
           'whether the fictional support request can continue',
         ),
       ]),
@@ -88,19 +89,19 @@ function supportCheckAnswersPageViewModel({ values }) {
         summaryRow(
           'Fictional full name',
           aboutYou.fullName,
-          '/demo/support/about-you',
+          getDemoSupportChangePath('aboutYou'),
           'fictional full name',
         ),
         summaryRow(
           'Date of birth',
           formatDateOfBirth(aboutYou.dateOfBirth),
-          '/demo/support/about-you',
+          getDemoSupportChangePath('aboutYou'),
           'date of birth',
         ),
         summaryRow(
           'Current country',
           optionText(demoSupportCountries, aboutYou.country),
-          '/demo/support/about-you',
+          getDemoSupportChangePath('aboutYou'),
           'current country',
         ),
       ]),
@@ -108,19 +109,19 @@ function supportCheckAnswersPageViewModel({ values }) {
         summaryRow(
           'Types of support',
           formatSupportTypes(supportNeeds.supportTypes),
-          '/demo/support/support-needs',
+          getDemoSupportChangePath('supportNeeds'),
           'types of support',
         ),
         summaryRow(
           'Description',
           supportNeeds.description,
-          '/demo/support/support-needs',
+          getDemoSupportChangePath('supportNeeds'),
           'description of the fictional support needed',
         ),
         summaryRow(
           'Additional information',
           supportNeeds.additionalInformation || 'Not provided',
-          '/demo/support/support-needs',
+          getDemoSupportChangePath('supportNeeds'),
           'additional information',
         ),
       ]),
@@ -128,7 +129,7 @@ function supportCheckAnswersPageViewModel({ values }) {
         summaryRow(
           'Supporting document',
           evidence.filename || 'No file selected',
-          '/demo/support/evidence',
+          getDemoSupportChangePath('evidence'),
           'supporting document',
         ),
       ]),

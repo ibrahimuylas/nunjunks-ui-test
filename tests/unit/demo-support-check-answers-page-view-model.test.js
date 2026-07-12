@@ -51,42 +51,42 @@ describe('demo support check-answers page view model', () => {
 
     expect(rows.map((row) => row.actions.items[0])).toEqual([
       {
-        href: '/demo/support/eligibility',
+        href: '/demo/support/eligibility/change',
         text: 'Change',
         visuallyHiddenText: 'whether the fictional support request can continue',
       },
       {
-        href: '/demo/support/about-you',
+        href: '/demo/support/about-you/change',
         text: 'Change',
         visuallyHiddenText: 'fictional full name',
       },
       {
-        href: '/demo/support/about-you',
+        href: '/demo/support/about-you/change',
         text: 'Change',
         visuallyHiddenText: 'date of birth',
       },
       {
-        href: '/demo/support/about-you',
+        href: '/demo/support/about-you/change',
         text: 'Change',
         visuallyHiddenText: 'current country',
       },
       {
-        href: '/demo/support/support-needs',
+        href: '/demo/support/support-needs/change',
         text: 'Change',
         visuallyHiddenText: 'types of support',
       },
       {
-        href: '/demo/support/support-needs',
+        href: '/demo/support/support-needs/change',
         text: 'Change',
         visuallyHiddenText: 'description of the fictional support needed',
       },
       {
-        href: '/demo/support/support-needs',
+        href: '/demo/support/support-needs/change',
         text: 'Change',
         visuallyHiddenText: 'additional information',
       },
       {
-        href: '/demo/support/evidence',
+        href: '/demo/support/evidence/change',
         text: 'Change',
         visuallyHiddenText: 'supporting document',
       },

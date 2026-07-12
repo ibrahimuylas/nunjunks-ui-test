@@ -97,7 +97,7 @@ describe('demo support eligibility', () => {
       .type('form')
       .send({ eligibility: 'eligible', returnTo: 'https://example.com' })
       .expect(302)
-      .expect('Location', '/demo/support/tasks');
+      .expect('Location', '/demo/support/about-you');
   });
 
   test('does not overwrite a retained answer after an unknown submission', async () => {

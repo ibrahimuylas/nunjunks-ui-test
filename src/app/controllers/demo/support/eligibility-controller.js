@@ -17,8 +17,13 @@ function showEligibility(req, res) {
 }
 
 function showEligibilityChange(req, res) {
-  if (getSavedEligibility(req.session) !== 'ineligible') {
-    return res.redirect('/demo/support/eligibility');
+  const accessRedirect = journeyService.getDemoSupportChangeAccessRedirect(
+    'eligibility',
+    req.session,
+  );
+
+  if (accessRedirect) {
+    return res.redirect(accessRedirect);
   }
 
   return res.render(
@@ -26,6 +31,8 @@ function showEligibilityChange(req, res) {
     supportEligibilityPageViewModel({
       eligibility: getSavedEligibility(req.session),
       change: true,
+      backLinkHref: journeyService.getDemoSupportChangeReturnPath('eligibility', req.session),
+      formAction: journeyService.getDemoSupportChangePath('eligibility'),
     }),
   );
 }
@@ -40,12 +47,25 @@ function submit(req, res, { change = false } = {}) {
         eligibility: req.body.eligibility,
         errors: validation.errors,
         change,
+        ...(change
+          ? {
+              backLinkHref: journeyService.getDemoSupportChangeReturnPath(
+                'eligibility',
+                req.session,
+              ),
+              formAction: journeyService.getDemoSupportChangePath('eligibility'),
+            }
+          : {}),
       }),
     );
   }
 
   journeyService.saveDemoSupportEligibility(req.session, validation.value);
-  return res.redirect(journeyService.getDemoSupportNextPath('eligibility', req.session));
+  return res.redirect(
+    change
+      ? journeyService.getDemoSupportChangeReturnPath('eligibility', req.session)
+      : journeyService.getDemoSupportNextPath('eligibility', req.session),
+  );
 }
 
 function submitEligibility(req, res) {
@@ -53,8 +73,13 @@ function submitEligibility(req, res) {
 }
 
 function submitEligibilityChange(req, res) {
-  if (getSavedEligibility(req.session) !== 'ineligible') {
-    return res.redirect('/demo/support/eligibility');
+  const accessRedirect = journeyService.getDemoSupportChangeAccessRedirect(
+    'eligibility',
+    req.session,
+  );
+
+  if (accessRedirect) {
+    return res.redirect(accessRedirect);
   }
 
   return submit(req, res, { change: true });

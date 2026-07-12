@@ -5,7 +5,12 @@ const {
 } = require('../../../validators/demo/support/evidence-validator');
 const { demoShellViewModel } = require('../shell-view-model');
 
-function supportEvidencePageViewModel({ values = {}, errors = {} } = {}) {
+function supportEvidencePageViewModel({
+  values = {},
+  errors = {},
+  backLinkHref = '/demo/support/support-needs',
+  formAction = '/demo/support/evidence',
+} = {}) {
   const errorList = Object.values(errors);
   const selectedFilename = typeof values.filename === 'string' ? values.filename : null;
 
@@ -16,7 +21,7 @@ function supportEvidencePageViewModel({ values = {}, errors = {} } = {}) {
     }),
     backLink: {
       text: 'Back',
-      href: '/demo/support/support-needs',
+      href: backLinkHref,
     },
     heading: 'Evidence',
     errorSummary: errorList.length
@@ -25,7 +30,7 @@ function supportEvidencePageViewModel({ values = {}, errors = {} } = {}) {
           errorList,
         }
       : null,
-    formAction: '/demo/support/evidence',
+    formAction,
     selectedFilename,
     evidenceFileUpload: {
       id: 'evidence',

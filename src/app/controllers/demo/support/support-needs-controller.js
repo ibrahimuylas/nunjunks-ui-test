@@ -10,31 +10,77 @@ function getSavedSupportNeeds(session) {
   return journeyService.getDemoSupportState(session).values.supportNeeds || {};
 }
 
-function showSupportNeeds(req, res) {
+function pageViewModelOptions(session, { values, errors, change }) {
+  return {
+    values,
+    errors,
+    ...(change
+      ? {
+          backLinkHref: journeyService.getDemoSupportChangeReturnPath('supportNeeds', session),
+          formAction: journeyService.getDemoSupportChangePath('supportNeeds'),
+        }
+      : {}),
+  };
+}
+
+function show(req, res, { change = false } = {}) {
   journeyService.markDemoSupportStepVisited(req.session, 'supportNeeds');
 
   return res.render(
     'demo/support/support-needs.njk',
-    supportNeedsPageViewModel({ values: getSavedSupportNeeds(req.session) }),
+    supportNeedsPageViewModel(
+      pageViewModelOptions(req.session, {
+        values: getSavedSupportNeeds(req.session),
+        change,
+      }),
+    ),
   );
 }
 
-function submitSupportNeeds(req, res) {
+function submit(req, res, { change = false } = {}) {
   journeyService.markDemoSupportStepVisited(req.session, 'supportNeeds');
   const validation = validateSupportNeeds(req.body);
 
   if (!validation.isValid) {
     return res.status(400).render(
       'demo/support/support-needs.njk',
-      supportNeedsPageViewModel({
-        values: validation.value,
-        errors: validation.errors,
-      }),
+      supportNeedsPageViewModel(
+        pageViewModelOptions(req.session, {
+          values: validation.value,
+          errors: validation.errors,
+          change,
+        }),
+      ),
     );
   }
 
   journeyService.completeDemoSupportNeeds(req.session, validation.value);
-  return res.redirect('/demo/support/tasks');
+  return res.redirect(
+    change
+      ? journeyService.getDemoSupportChangeReturnPath('supportNeeds', req.session)
+      : '/demo/support/tasks',
+  );
 }
 
-module.exports = { showSupportNeeds, submitSupportNeeds };
+function showSupportNeeds(req, res) {
+  return show(req, res);
+}
+
+function showSupportNeedsChange(req, res) {
+  return show(req, res, { change: true });
+}
+
+function submitSupportNeeds(req, res) {
+  return submit(req, res);
+}
+
+function submitSupportNeedsChange(req, res) {
+  return submit(req, res, { change: true });
+}
+
+module.exports = {
+  showSupportNeeds,
+  showSupportNeedsChange,
+  submitSupportNeeds,
+  submitSupportNeedsChange,
+};

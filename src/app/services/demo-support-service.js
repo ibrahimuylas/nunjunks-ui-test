@@ -37,6 +37,50 @@ function getFirstIncompletePath(session) {
   return journeySteps.getDemoSupportFirstIncompletePath(getState(session));
 }
 
+function assertChangeStepKey(stepKey) {
+  if (!journeySteps.getDemoSupportChangePath(stepKey)) {
+    throw new TypeError('Demo support change step key must be allow-listed');
+  }
+}
+
+function getChangePath(stepKey) {
+  assertChangeStepKey(stepKey);
+  return journeySteps.getDemoSupportChangePath(stepKey);
+}
+
+function getChangeAccessRedirect(stepKey, session) {
+  assertChangeStepKey(stepKey);
+
+  if (stepKey === 'eligibility') {
+    return journeySteps.isDemoSupportEligibility(getState(session).values.eligibility)
+      ? null
+      : journeySteps.getDemoSupportPath('eligibility');
+  }
+
+  return getAccessRedirect('checkAnswers', session);
+}
+
+function getChangeReturnPath(stepKey, session) {
+  assertChangeStepKey(stepKey);
+  const accessRedirect = getChangeAccessRedirect(stepKey, session);
+
+  if (accessRedirect) {
+    return accessRedirect;
+  }
+
+  if (stepKey !== 'eligibility') {
+    return journeySteps.getDemoSupportPath('checkAnswers');
+  }
+
+  const { eligibility } = getState(session).values;
+
+  if (eligibility === 'ineligible') {
+    return getNextPath('eligibility', session);
+  }
+
+  return getFirstIncompletePath(session) || journeySteps.getDemoSupportPath('checkAnswers');
+}
+
 function assertTaskKey(stepKey) {
   if (!journeySteps.isDemoSupportTaskKey(stepKey)) {
     throw new TypeError('Demo support task key must be allow-listed');
@@ -76,6 +120,9 @@ module.exports = {
   completeEvidence,
   completeSupportNeeds,
   getAccessRedirect,
+  getChangeAccessRedirect,
+  getChangePath,
+  getChangeReturnPath,
   getFirstIncompletePath,
   getNextPath,
   getState,

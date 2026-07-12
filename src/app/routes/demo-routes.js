@@ -10,6 +10,7 @@ const supportNeedsController = require('../controllers/demo/support/support-need
 const taskListController = require('../controllers/demo/support/task-list-controller');
 
 const router = express.Router();
+const requireUnlockedCheckAnswers = taskListController.requireSupportStep('checkAnswers');
 
 router.use(cookieController.addCookieBanner);
 router.get('/', homeController.showHome);
@@ -25,15 +26,46 @@ router.get('/support/tasks', taskListController.showTaskList);
 router.use('/support/about-you', taskListController.requireSupportStep('aboutYou'));
 router.get('/support/about-you', aboutYouController.showAboutYou);
 router.post('/support/about-you', aboutYouController.submitAboutYou);
+router.get(
+  '/support/about-you/change',
+  requireUnlockedCheckAnswers,
+  aboutYouController.showAboutYouChange,
+);
+router.post(
+  '/support/about-you/change',
+  requireUnlockedCheckAnswers,
+  aboutYouController.submitAboutYouChange,
+);
 router.use('/support/support-needs', taskListController.requireSupportStep('supportNeeds'));
 router.get('/support/support-needs', supportNeedsController.showSupportNeeds);
 router.post('/support/support-needs', supportNeedsController.submitSupportNeeds);
+router.get(
+  '/support/support-needs/change',
+  requireUnlockedCheckAnswers,
+  supportNeedsController.showSupportNeedsChange,
+);
+router.post(
+  '/support/support-needs/change',
+  requireUnlockedCheckAnswers,
+  supportNeedsController.submitSupportNeedsChange,
+);
 router.use('/support/evidence', taskListController.requireSupportStep('evidence'));
 router.get('/support/evidence', evidenceController.showEvidence);
 router.post(
   '/support/evidence',
   evidenceController.parseEvidenceUpload,
   evidenceController.submitEvidence,
+);
+router.get(
+  '/support/evidence/change',
+  requireUnlockedCheckAnswers,
+  evidenceController.showEvidenceChange,
+);
+router.post(
+  '/support/evidence/change',
+  requireUnlockedCheckAnswers,
+  evidenceController.parseEvidenceChangeUpload,
+  evidenceController.submitEvidenceChange,
 );
 router.use('/support/check-answers', taskListController.requireSupportStep('checkAnswers'));
 router.get('/support/check-answers', checkAnswersController.showCheckAnswers);

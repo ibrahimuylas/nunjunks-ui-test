@@ -2,7 +2,13 @@ const { demoShellViewModel } = require('../shell-view-model');
 
 const eligibilityQuestion = 'Can this fictional support request continue?';
 
-function supportEligibilityPageViewModel({ eligibility = null, errors = {}, change = false } = {}) {
+function supportEligibilityPageViewModel({
+  eligibility = null,
+  errors = {},
+  change = false,
+  backLinkHref = '/demo/support/ineligible',
+  formAction = '/demo/support/eligibility/change',
+} = {}) {
   const errorList = Object.values(errors);
 
   return {
@@ -12,7 +18,7 @@ function supportEligibilityPageViewModel({ eligibility = null, errors = {}, chan
     }),
     backLink: {
       text: 'Back',
-      href: change ? '/demo/support/ineligible' : '/demo/support/start',
+      href: change ? backLinkHref : '/demo/support/start',
     },
     errorSummary: errorList.length
       ? {
@@ -20,7 +26,7 @@ function supportEligibilityPageViewModel({ eligibility = null, errors = {}, chan
           errorList,
         }
       : null,
-    formAction: change ? '/demo/support/eligibility/change' : '/demo/support/eligibility',
+    formAction: change ? formAction : '/demo/support/eligibility',
     eligibilityRadios: {
       idPrefix: 'eligibility',
       name: 'eligibility',

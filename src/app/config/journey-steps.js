@@ -110,6 +110,14 @@ function isDemoSupportTaskKey(stepKey) {
   return demoSupportSteps.isDemoSupportTaskKey(stepKey);
 }
 
+function getDemoSupportChangePath(stepKey) {
+  return demoSupportSteps.getDemoSupportChangePath(stepKey);
+}
+
+function getDemoSupportPath(stepKey) {
+  return demoSupportSteps.getDemoSupportPath(stepKey);
+}
+
 module.exports = {
   getNextPath,
   getPreviousPath,
@@ -118,8 +126,10 @@ module.exports = {
   hasFarmingBusiness,
   isIndividualApplicant,
   getDemoSupportAccessRedirect,
+  getDemoSupportChangePath,
   getDemoSupportFirstIncompletePath,
   getDemoSupportNextPath,
+  getDemoSupportPath,
   getDemoSupportTaskStates,
   isDemoSupportEligibility,
   isDemoSupportTaskKey,

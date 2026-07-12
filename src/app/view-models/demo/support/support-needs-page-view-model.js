@@ -4,7 +4,12 @@ const {
 } = require('../../../config/demo-support-types');
 const { demoShellViewModel } = require('../shell-view-model');
 
-function supportNeedsPageViewModel({ values = {}, errors = {} } = {}) {
+function supportNeedsPageViewModel({
+  values = {},
+  errors = {},
+  backLinkHref = '/demo/support/tasks',
+  formAction = '/demo/support/support-needs',
+} = {}) {
   const supportTypes = Array.isArray(values.supportTypes) ? values.supportTypes : [];
   const errorList = Object.values(errors);
 
@@ -15,7 +20,7 @@ function supportNeedsPageViewModel({ values = {}, errors = {} } = {}) {
     }),
     backLink: {
       text: 'Back',
-      href: '/demo/support/tasks',
+      href: backLinkHref,
     },
     heading: 'Support needs',
     errorSummary: errorList.length
@@ -24,7 +29,7 @@ function supportNeedsPageViewModel({ values = {}, errors = {} } = {}) {
           errorList,
         }
       : null,
-    formAction: '/demo/support/support-needs',
+    formAction,
     supportTypesCheckboxes: {
       idPrefix: 'supportTypes',
       name: 'supportTypes',

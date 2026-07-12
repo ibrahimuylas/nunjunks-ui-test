@@ -91,13 +91,13 @@ describe('demo support check answers', () => {
     expect(response.text).toContain('Not provided');
     expect(response.text).toContain('No file selected');
     expect(response.text).toMatch(
-      /href="\/demo\/support\/about-you">Change<span class="govuk-visually-hidden"> fictional full name \(About you\)<\/span>/,
+      /href="\/demo\/support\/about-you\/change">Change<span class="govuk-visually-hidden"> fictional full name \(About you\)<\/span>/,
     );
     expect(response.text).toMatch(
-      /href="\/demo\/support\/support-needs">Change<span class="govuk-visually-hidden"> types of support \(Support needs\)<\/span>/,
+      /href="\/demo\/support\/support-needs\/change">Change<span class="govuk-visually-hidden"> types of support \(Support needs\)<\/span>/,
     );
     expect(response.text).toMatch(
-      /href="\/demo\/support\/evidence">Change<span class="govuk-visually-hidden"> supporting document \(Evidence\)<\/span>/,
+      /href="\/demo\/support\/evidence\/change">Change<span class="govuk-visually-hidden"> supporting document \(Evidence\)<\/span>/,
     );
     expect(response.text).toMatch(
       /<a\b(?=[^>]*href="\/demo\/support\/tasks")(?=[^>]*class="[^"]*\bgovuk-back-link\b[^"]*")[^>]*>/,

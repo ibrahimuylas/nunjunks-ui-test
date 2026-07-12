@@ -108,6 +108,18 @@ function getDemoSupportFirstIncompletePath(session) {
   return demoSupportService.getFirstIncompletePath(session);
 }
 
+function getDemoSupportChangeAccessRedirect(stepKey, session) {
+  return demoSupportService.getChangeAccessRedirect(stepKey, session);
+}
+
+function getDemoSupportChangePath(stepKey) {
+  return demoSupportService.getChangePath(stepKey);
+}
+
+function getDemoSupportChangeReturnPath(stepKey, session) {
+  return demoSupportService.getChangeReturnPath(stepKey, session);
+}
+
 function markDemoSupportStepVisited(session, stepKey) {
   demoSupportService.markStepVisited(session, stepKey);
 }
@@ -164,6 +176,9 @@ module.exports = {
   saveDemoSupportValue,
   saveDemoSupportEligibility,
   getDemoSupportAccessRedirect,
+  getDemoSupportChangeAccessRedirect,
+  getDemoSupportChangePath,
+  getDemoSupportChangeReturnPath,
   getDemoSupportFirstIncompletePath,
   getDemoSupportNextPath,
   getDemoSupportTaskStates,
