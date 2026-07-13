@@ -1,0 +1,26 @@
+{% extends "demo/layouts/main.njk" %}
+{% from "govuk/components/back-link/macro.njk" import govukBackLink %}
+{% from "govuk/components/button/macro.njk" import govukButton %}
+{% from "govuk/components/error-summary/macro.njk" import govukErrorSummary %}
+{% from "govuk/components/password-input/macro.njk" import govukPasswordInput %}
+
+{% block beforeContent %}
+  {{ govukBackLink(backLink) }}
+{% endblock %}
+
+{% block content %}
+  <div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds">
+      {% if errorSummary %}
+        {{ govukErrorSummary(errorSummary) }}
+      {% endif %}
+      <h1 class="govuk-heading-xl">{{ heading }}</h1>
+      <p class="govuk-body-l">This page demonstrates a password input. It is not real authentication.</p>
+      <p class="govuk-body">Use any non-empty made-up value to continue. The value is discarded immediately and only a session access flag is kept.</p>
+      <form method="post" action="/demo/casework/sign-in" novalidate>
+        {{ govukPasswordInput(passwordInput) }}
+        {{ govukButton({ text: "Continue" }) }}
+      </form>
+    </div>
+  </div>
+{% endblock %}

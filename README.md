@@ -67,10 +67,18 @@ namespace. Open `/demo` to choose between these stable scenario entry points:
 - `/demo/support/start` — the public support-request journey
 - `/demo/casework/sign-in` — the caseworker triage journey
 
-The public journey is complete. The caseworker entry point is stable, but its pages are delivered
-in later increments. The demo shell uses neutral fictional branding and tells visitors not to enter
-real personal information or passwords. Its header and service navigation always provide a route
-back to `/demo`. The existing `/start` journey and all of its URLs remain unchanged.
+The public journey is complete. The caseworker sign-in is available, while its queue and request
+pages are delivered in later increments. The demo shell uses neutral fictional branding and tells
+visitors not to enter real personal information or passwords. Its header and service navigation
+always provide a route back to `/demo`. The existing `/start` journey and all of its URLs remain
+unchanged.
+
+The caseworker sign-in is a component demonstration, not real authentication. It accepts any
+non-empty made-up value after trimming surrounding whitespace, discards that value immediately and
+does not write it to the session or application logs. Only a boolean access flag is kept in the
+casework session. Protected casework URLs redirect to `/demo/casework/sign-in` until that flag is
+present, and resetting the caseworker journey clears it without changing the public or legacy
+journeys.
 
 The public journey now starts with an explicitly fictional eligibility branch:
 

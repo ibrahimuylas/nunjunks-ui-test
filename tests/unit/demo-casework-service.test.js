@@ -105,6 +105,22 @@ describe('demo casework service', () => {
     expect(session.demo.casework.completion).toEqual({});
   });
 
+  test('grants access using only a boolean completion flag', () => {
+    const session = {};
+
+    expect(demoCaseworkService.hasAccess(session)).toBe(false);
+    expect(demoCaseworkService.getAccessRedirect(session)).toBe('/demo/casework/sign-in');
+
+    demoCaseworkService.grantAccess(session);
+
+    expect(demoCaseworkService.hasAccess(session)).toBe(true);
+    expect(demoCaseworkService.getAccessRedirect(session)).toBeNull();
+    expect(session.demo.casework).toEqual({
+      values: {},
+      completion: { signedIn: true },
+    });
+  });
+
   test('isolates stored records and returned snapshots between sessions', () => {
     const firstSession = {};
     const secondSession = {};

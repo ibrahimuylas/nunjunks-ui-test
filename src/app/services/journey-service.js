@@ -1,4 +1,5 @@
 const journeySteps = require('../config/journey-steps');
+const demoCaseworkService = require('./demo-casework-service');
 const demoSessionService = require('./demo-session-service');
 const demoSupportService = require('./demo-support-service');
 
@@ -164,6 +165,14 @@ function saveDemoCaseworkCompletion(session, key, value) {
   demoSessionService.saveCaseworkCompletion(session, key, value);
 }
 
+function grantDemoCaseworkAccess(session) {
+  demoCaseworkService.grantAccess(session);
+}
+
+function getDemoCaseworkAccessRedirect(session) {
+  return demoCaseworkService.getAccessRedirect(session);
+}
+
 function resetDemoSupport(session) {
   demoSessionService.resetSupport(session);
 }
@@ -201,6 +210,8 @@ module.exports = {
   completeDemoSupportNeeds,
   markDemoSupportStepCompleted,
   markDemoSupportStepVisited,
+  getDemoCaseworkAccessRedirect,
+  grantDemoCaseworkAccess,
   saveDemoCaseworkValue,
   saveDemoSupportCompletion,
   saveDemoCaseworkCompletion,
