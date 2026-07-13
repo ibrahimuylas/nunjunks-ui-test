@@ -68,9 +68,8 @@ function paginateRecords(records, requestedPage) {
   };
 }
 
-function getQueue(session, requestedTab, requestedPage) {
+function buildQueue(records, requestedTab, requestedPage) {
   const selectedTab = normalizeQueueTab(requestedTab);
-  const records = getRecords(session);
   const tabs = demoCaseworkTabs.map((tab) => {
     const filteredRecords = records.filter((record) => record.queue === tab);
 
@@ -88,6 +87,30 @@ function getQueue(session, requestedTab, requestedPage) {
     requiresCanonicalRedirect:
       (requestedTab !== undefined && requestedTab !== selectedTab) ||
       selectedQueue.requiresCanonicalRedirect,
+  };
+}
+
+function getQueue(session, requestedTab, requestedPage) {
+  return buildQueue(getRecords(session), requestedTab, requestedPage);
+}
+
+function getRequest(session, reference, requestedTab, requestedPage) {
+  const records = getRecords(session);
+  const record = records.find((candidate) => candidate.reference === reference);
+
+  if (!record) {
+    return null;
+  }
+
+  const queue = buildQueue(records, requestedTab, requestedPage);
+
+  return {
+    record,
+    queueContext: {
+      tab: queue.selectedTab,
+      page: queue.selectedPage,
+    },
+    requiresCanonicalRedirect: queue.requiresCanonicalRedirect,
   };
 }
 
@@ -111,6 +134,7 @@ module.exports = {
   getAccessRedirect,
   getQueue,
   getRecords,
+  getRequest,
   getState,
   grantAccess,
   hasAccess,

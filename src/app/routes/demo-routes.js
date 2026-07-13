@@ -2,6 +2,7 @@ const express = require('express');
 const cookieController = require('../controllers/demo/cookie-controller');
 const homeController = require('../controllers/demo/home-controller');
 const caseworkQueueController = require('../controllers/demo/casework/queue-controller');
+const caseworkRequestController = require('../controllers/demo/casework/request-controller');
 const caseworkSignInController = require('../controllers/demo/casework/sign-in-controller');
 const aboutYouController = require('../controllers/demo/support/about-you-controller');
 const checkAnswersController = require('../controllers/demo/support/check-answers-controller');
@@ -80,5 +81,6 @@ router.post('/casework/reset', homeController.resetCasework);
 router.use('/casework/queue', caseworkSignInController.requireCaseworkAccess);
 router.get('/casework/queue', caseworkQueueController.showQueue);
 router.use('/casework/requests', caseworkSignInController.requireCaseworkAccess);
+router.get('/casework/requests/:reference', caseworkRequestController.showRequest);
 
 module.exports = router;

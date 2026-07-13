@@ -181,6 +181,26 @@ describe('demo casework service', () => {
     expect(selectedQueue.records.map((record) => record.reference)).toEqual(['DEMO-CW-3006']);
   });
 
+  test('finds a request while retaining only validated queue context', () => {
+    const request = demoCaseworkService.getRequest({}, 'DEMO-CW-2006', 'my-requests', '2');
+
+    expect(request).toEqual({
+      record: demoCaseworkRecords.find((record) => record.reference === 'DEMO-CW-2006'),
+      queueContext: { tab: 'my-requests', page: 2 },
+      requiresCanonicalRedirect: false,
+    });
+  });
+
+  test('canonicalizes unsafe request context and rejects an unknown reference', () => {
+    expect(demoCaseworkService.getRequest({}, 'DEMO-CW-1001', 'unknown', '0')).toEqual(
+      expect.objectContaining({
+        queueContext: { tab: 'unassigned', page: 1 },
+        requiresCanonicalRedirect: true,
+      }),
+    );
+    expect(demoCaseworkService.getRequest({}, 'DEMO-CW-9999', 'completed', '2')).toBeNull();
+  });
+
   test('clones the fixtures lazily into a casework session', () => {
     const session = {};
 

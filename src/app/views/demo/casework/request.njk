@@ -1,0 +1,30 @@
+{% extends "demo/layouts/main.njk" %}
+{% from "govuk/components/breadcrumbs/macro.njk" import govukBreadcrumbs %}
+{% from "govuk/components/button/macro.njk" import govukButton %}
+{% from "govuk/components/details/macro.njk" import govukDetails %}
+{% from "govuk/components/summary-list/macro.njk" import govukSummaryList %}
+
+{% block beforeContent %}
+  {{ govukBreadcrumbs(breadcrumbs) }}
+{% endblock %}
+
+{% block content %}
+  <div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds">
+      <span class="govuk-caption-xl">{{ caption }}</span>
+      <h1 class="govuk-heading-xl">{{ heading }}</h1>
+      <p class="govuk-body">Review the fictional information before recording a demonstration decision.</p>
+
+      {% for summaryList in summaryLists %}
+        {{ govukSummaryList(summaryList) }}
+      {% endfor %}
+
+      {{ govukDetails(auditDetails) }}
+      {{ govukButton(decisionButton) }}
+
+      <p class="govuk-body">
+        <a class="govuk-link" href="{{ returnLink.href }}">{{ returnLink.text }}</a>
+      </p>
+    </div>
+  </div>
+{% endblock %}
