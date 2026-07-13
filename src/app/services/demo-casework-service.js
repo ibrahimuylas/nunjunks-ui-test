@@ -3,6 +3,10 @@ const {
   demoCaseworkRecords,
   demoCaseworkTabs,
 } = require('../config/demo-casework-records');
+const {
+  getDecisionStatus,
+  validateDecision,
+} = require('../validators/demo/casework/decision-validator');
 const demoSessionService = require('./demo-session-service');
 
 const signInPath = '/demo/casework/sign-in';
@@ -114,6 +118,46 @@ function getRequest(session, reference, requestedTab, requestedPage) {
   };
 }
 
+function saveDecision(session, reference, submittedDecision, requestedTab, requestedPage) {
+  const validation = validateDecision(submittedDecision);
+
+  if (!validation.isValid) {
+    throw new TypeError('Demo casework decision must contain only validated values');
+  }
+
+  const request = getRequest(session, reference, requestedTab, requestedPage);
+
+  if (!request) {
+    return null;
+  }
+
+  const status = getDecisionStatus(validation.value.decision);
+  const updatedRecord = {
+    ...request.record,
+    status,
+    queue: 'completed',
+    caseNote: validation.value.caseNote,
+  };
+  const replayed =
+    request.record.status === updatedRecord.status &&
+    request.record.queue === updatedRecord.queue &&
+    request.record.caseNote === updatedRecord.caseNote;
+
+  if (!replayed) {
+    const records = getRecords(session).map((record) =>
+      record.reference === reference ? updatedRecord : record,
+    );
+    demoSessionService.saveCaseworkValue(session, 'records', records);
+  }
+
+  return {
+    record: updatedRecord,
+    queueContext: request.queueContext,
+    requiresCanonicalRedirect: request.requiresCanonicalRedirect,
+    replayed,
+  };
+}
+
 function grantAccess(session) {
   demoSessionService.saveCaseworkCompletion(session, 'signedIn', true);
 }
@@ -139,4 +183,5 @@ module.exports = {
   grantAccess,
   hasAccess,
   reset,
+  saveDecision,
 };

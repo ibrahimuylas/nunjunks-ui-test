@@ -201,6 +201,169 @@ describe('demo casework service', () => {
     expect(demoCaseworkService.getRequest({}, 'DEMO-CW-9999', 'completed', '2')).toBeNull();
   });
 
+  test.each([
+    ['priority', 'priority'],
+    ['standard', 'standard'],
+    ['more-information-needed', 'more-information-needed'],
+  ])('maps the %s decision to the completed %s status', (decision, status) => {
+    const session = {};
+    const result = demoCaseworkService.saveDecision(
+      session,
+      'DEMO-CW-1001',
+      { decision, caseNote: '  A fictional case note.  ' },
+      'unassigned',
+      '1',
+    );
+
+    expect(result).toMatchObject({
+      record: {
+        reference: 'DEMO-CW-1001',
+        status,
+        queue: 'completed',
+        caseNote: 'A fictional case note.',
+      },
+      queueContext: { tab: 'unassigned', page: 1 },
+      requiresCanonicalRedirect: false,
+      replayed: false,
+    });
+    expect(
+      demoCaseworkService
+        .getRecords(session)
+        .find((record) => record.reference === 'DEMO-CW-1001'),
+    ).toEqual(result.record);
+  });
+
+  test('moves only the decided record from its current queue into completed work', () => {
+    const session = {};
+
+    demoCaseworkService.saveDecision(
+      session,
+      'DEMO-CW-1001',
+      { decision: 'priority', caseNote: '' },
+      'unassigned',
+      '1',
+    );
+
+    const queue = demoCaseworkService.getQueue(session, 'completed', '1');
+    const recordCounts = Object.fromEntries(
+      queue.tabs.map((tab) => [tab.key, tab.pagination.totalRecords]),
+    );
+
+    expect(recordCounts).toEqual({ unassigned: 5, 'my-requests': 6, completed: 7 });
+    expect(queue.tabs.find((tab) => tab.key === 'completed').records[0]).toMatchObject({
+      reference: 'DEMO-CW-1001',
+      status: 'priority',
+    });
+  });
+
+  test('retains validated queue context while rejecting unsafe context values', () => {
+    const retainedContext = demoCaseworkService.saveDecision(
+      {},
+      'DEMO-CW-2006',
+      { decision: 'standard', caseNote: '' },
+      'my-requests',
+      '2',
+    );
+    const canonicalContext = demoCaseworkService.saveDecision(
+      {},
+      'DEMO-CW-1001',
+      { decision: 'standard', caseNote: '' },
+      'https://example.invalid',
+      '99',
+    );
+
+    expect(retainedContext).toMatchObject({
+      queueContext: { tab: 'my-requests', page: 2 },
+      requiresCanonicalRedirect: false,
+    });
+    expect(canonicalContext).toMatchObject({
+      queueContext: { tab: 'unassigned', page: 2 },
+      requiresCanonicalRedirect: true,
+    });
+  });
+
+  test('treats a repeated save as a replay without changing the session records again', () => {
+    const session = {};
+    const submittedDecision = {
+      decision: 'more-information-needed',
+      caseNote: 'Request a fictional supporting detail.',
+    };
+    const firstSave = demoCaseworkService.saveDecision(
+      session,
+      'DEMO-CW-2001',
+      submittedDecision,
+      'my-requests',
+      '1',
+    );
+    const storedRecords = session.demo.casework.values.records;
+    const replay = demoCaseworkService.saveDecision(
+      session,
+      'DEMO-CW-2001',
+      submittedDecision,
+      'my-requests',
+      '1',
+    );
+
+    expect(firstSave.replayed).toBe(false);
+    expect(replay).toMatchObject({ record: firstSave.record, replayed: true });
+    expect(session.demo.casework.values.records).toBe(storedRecords);
+  });
+
+  test('rejects invalid decision data before creating or changing casework state', () => {
+    const session = {};
+
+    expect(() =>
+      demoCaseworkService.saveDecision(
+        session,
+        'DEMO-CW-1001',
+        { decision: 'urgent', caseNote: '' },
+        'unassigned',
+        '1',
+      ),
+    ).toThrow('Demo casework decision must contain only validated values');
+    expect(session).toEqual({});
+  });
+
+  test('does not change records when the fictional reference is unknown', () => {
+    const session = {};
+    const recordsBeforeSave = demoCaseworkService.getRecords(session);
+
+    expect(
+      demoCaseworkService.saveDecision(
+        session,
+        'DEMO-CW-9999',
+        { decision: 'priority', caseNote: '' },
+        'completed',
+        '1',
+      ),
+    ).toBeNull();
+    expect(demoCaseworkService.getRecords(session)).toEqual(recordsBeforeSave);
+  });
+
+  test('keeps a decision isolated from another casework session', () => {
+    const decidedSession = {};
+    const untouchedSession = {};
+
+    demoCaseworkService.saveDecision(
+      decidedSession,
+      'DEMO-CW-1001',
+      { decision: 'priority', caseNote: 'Session-only fictional note.' },
+      'unassigned',
+      '1',
+    );
+
+    expect(
+      demoCaseworkService
+        .getRecords(decidedSession)
+        .find((record) => record.reference === 'DEMO-CW-1001'),
+    ).toMatchObject({ status: 'priority', queue: 'completed' });
+    expect(
+      demoCaseworkService
+        .getRecords(untouchedSession)
+        .find((record) => record.reference === 'DEMO-CW-1001'),
+    ).toEqual(demoCaseworkRecords[0]);
+  });
+
   test('clones the fixtures lazily into a casework session', () => {
     const session = {};
 
