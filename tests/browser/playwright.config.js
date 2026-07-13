@@ -5,6 +5,7 @@ const { getViewport } = require('./helpers/viewports');
 const repositoryRoot = path.resolve(__dirname, '../..');
 const baseURL = 'http://[::1]:3000';
 const javaScriptOnlyTests = [
+  '**/demo-casework-accessibility.test.js',
   '**/demo-casework-enhancements.test.js',
   '**/demo-shared-components.test.js',
   '**/demo-support-accessibility.test.js',
