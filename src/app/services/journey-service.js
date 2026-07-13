@@ -120,6 +120,18 @@ function getDemoSupportChangeReturnPath(stepKey, session) {
   return demoSupportService.getChangeReturnPath(stepKey, session);
 }
 
+function getDemoSupportConfirmationAccessRedirect(session) {
+  return demoSupportService.getConfirmationAccessRedirect(session);
+}
+
+function getDemoSupportSubmissionRedirect(session) {
+  return demoSupportService.getSubmissionRedirect(session);
+}
+
+function submitDemoSupportRequest(session) {
+  return demoSupportService.submitRequest(session);
+}
+
 function markDemoSupportStepVisited(session, stepKey) {
   demoSupportService.markStepVisited(session, stepKey);
 }
@@ -179,8 +191,10 @@ module.exports = {
   getDemoSupportChangeAccessRedirect,
   getDemoSupportChangePath,
   getDemoSupportChangeReturnPath,
+  getDemoSupportConfirmationAccessRedirect,
   getDemoSupportFirstIncompletePath,
   getDemoSupportNextPath,
+  getDemoSupportSubmissionRedirect,
   getDemoSupportTaskStates,
   completeDemoSupportAboutYou,
   completeDemoSupportEvidence,
@@ -192,4 +206,5 @@ module.exports = {
   saveDemoCaseworkCompletion,
   resetDemoSupport,
   resetDemoCasework,
+  submitDemoSupportRequest,
 };

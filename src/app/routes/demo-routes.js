@@ -69,6 +69,8 @@ router.post(
 );
 router.use('/support/check-answers', taskListController.requireSupportStep('checkAnswers'));
 router.get('/support/check-answers', checkAnswersController.showCheckAnswers);
+router.post('/support/check-answers', checkAnswersController.submitCheckAnswers);
+router.get('/support/confirmation', checkAnswersController.showConfirmation);
 router.post('/support/reset', homeController.resetSupport);
 router.post('/casework/reset', homeController.resetCasework);
 

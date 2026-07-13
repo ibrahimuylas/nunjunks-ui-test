@@ -1,0 +1,14 @@
+{% extends "demo/layouts/main.njk" %}
+{% from "govuk/components/panel/macro.njk" import govukPanel %}
+
+{% block content %}
+  <div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds">
+      {{ govukPanel(panel) }}
+      <h2 class="govuk-heading-m">What happens next</h2>
+      <p class="govuk-body">In a real service, the information could be reviewed and the applicant could be contacted about next steps.</p>
+      <p class="govuk-body">This demonstration has not sent the request to a housing service, caseworker or external system.</p>
+      <p class="govuk-body"><a class="govuk-link" href="{{ demoHomeLink.href }}">{{ demoHomeLink.text }}</a></p>
+    </div>
+  </div>
+{% endblock %}

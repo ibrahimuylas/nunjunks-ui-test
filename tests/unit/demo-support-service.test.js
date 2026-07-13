@@ -1,6 +1,25 @@
 const journeySteps = require('../../src/app/config/journey-steps');
 const journeyService = require('../../src/app/services/journey-service');
 
+function completedSupportSession() {
+  const session = {};
+
+  journeyService.saveDemoSupportEligibility(session, 'eligible');
+  journeyService.completeDemoSupportAboutYou(session, {
+    fullName: 'Alex Example',
+    dateOfBirth: { day: '7', month: '9', year: '1990', iso: '1990-09-07' },
+    country: 'scotland',
+  });
+  journeyService.completeDemoSupportNeeds(session, {
+    supportTypes: ['safe-accommodation'],
+    description: 'A fictional support description',
+    additionalInformation: '',
+  });
+  journeyService.completeDemoSupportEvidence(session, { filename: null });
+
+  return session;
+}
+
 describe('demo support service', () => {
   test.each([
     ['eligible', '/demo/support/tasks'],
@@ -221,4 +240,132 @@ describe('demo support service', () => {
       expect(session.journey).toBe(legacyJourney);
     },
   );
+
+  test('rechecks stored required answers instead of trusting completion metadata', () => {
+    const session = {
+      demo: {
+        support: {
+          values: {
+            eligibility: 'eligible',
+            aboutYou: {
+              fullName: 'Alex Example',
+              dateOfBirth: { day: '7', month: '9', year: '1990', iso: '1990-09-07' },
+              country: 'scotland',
+            },
+            evidence: { filename: null },
+          },
+          completion: {
+            aboutYou: true,
+            supportNeeds: true,
+            evidence: true,
+          },
+        },
+      },
+    };
+
+    expect(journeyService.getDemoSupportSubmissionRedirect(session)).toBe(
+      '/demo/support/support-needs',
+    );
+    expect(journeyService.submitDemoSupportRequest(session)).toEqual({
+      submitted: false,
+      replayed: false,
+      reference: null,
+      redirectPath: '/demo/support/support-needs',
+    });
+    expect(journeyService.getDemoSupportState(session).values.reference).toBeUndefined();
+    expect(journeyService.getDemoSupportState(session).completion.submitted).toBeUndefined();
+  });
+
+  test.each([
+    [
+      'About you',
+      (session) => {
+        session.demo.support.values.aboutYou.fullName = '';
+      },
+      '/demo/support/about-you',
+    ],
+    [
+      'Support needs',
+      (session) => {
+        session.demo.support.values.supportNeeds.supportTypes = ['unknown'];
+      },
+      '/demo/support/support-needs',
+    ],
+    [
+      'Evidence',
+      (session) => {
+        session.demo.support.values.evidence = { filename: 'unsafe.exe' };
+      },
+      '/demo/support/evidence',
+    ],
+  ])('revalidates the stored %s answer before submission', (section, makeInvalid, path) => {
+    const session = completedSupportSession();
+    makeInvalid(session);
+
+    expect(journeyService.getDemoSupportSubmissionRedirect(session)).toBe(path);
+    expect(journeyService.submitDemoSupportRequest(session)).toMatchObject({
+      submitted: false,
+      reference: null,
+      redirectPath: path,
+    });
+  });
+
+  test('creates one stable fictional reference for first submission and replay', () => {
+    const session = completedSupportSession();
+
+    const firstSubmission = journeyService.submitDemoSupportRequest(session);
+    const replayedSubmission = journeyService.submitDemoSupportRequest(session);
+
+    expect(firstSubmission).toEqual({
+      submitted: true,
+      replayed: false,
+      reference: expect.stringMatching(/^DEMO-[A-F0-9]{8}$/),
+      redirectPath: null,
+    });
+    expect(replayedSubmission).toEqual({
+      submitted: true,
+      replayed: true,
+      reference: firstSubmission.reference,
+      redirectPath: null,
+    });
+    expect(journeyService.getDemoSupportState(session)).toMatchObject({
+      values: { reference: firstSubmission.reference },
+      completion: { checkAnswers: true, submitted: true },
+    });
+    expect(journeyService.getDemoSupportConfirmationAccessRedirect(session)).toBeNull();
+  });
+
+  test('invalidates submission only when a later answer changes', () => {
+    const session = completedSupportSession();
+    const { reference } = journeyService.submitDemoSupportRequest(session);
+    const originalAboutYou = journeyService.getDemoSupportState(session).values.aboutYou;
+
+    journeyService.completeDemoSupportAboutYou(session, originalAboutYou);
+    expect(journeyService.getDemoSupportState(session)).toMatchObject({
+      values: { reference },
+      completion: { checkAnswers: true, submitted: true },
+    });
+
+    journeyService.completeDemoSupportAboutYou(session, {
+      ...originalAboutYou,
+      fullName: 'Jordan Example',
+    });
+
+    expect(journeyService.getDemoSupportState(session)).toMatchObject({
+      values: { reference: null, aboutYou: { fullName: 'Jordan Example' } },
+      completion: { aboutYou: true, checkAnswers: false, submitted: false },
+    });
+    expect(journeyService.getDemoSupportConfirmationAccessRedirect(session)).toBe(
+      '/demo/support/check-answers',
+    );
+  });
+
+  test('guards confirmation at the earliest incomplete route before submission', () => {
+    expect(journeyService.getDemoSupportConfirmationAccessRedirect({})).toBe(
+      '/demo/support/eligibility',
+    );
+    expect(journeyService.getDemoSupportConfirmationAccessRedirect(completedSupportSession())).toBe(
+      '/demo/support/check-answers',
+    );
+  });
 });
