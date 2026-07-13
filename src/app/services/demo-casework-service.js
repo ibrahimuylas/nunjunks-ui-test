@@ -118,6 +118,32 @@ function getRequest(session, reference, requestedTab, requestedPage) {
   };
 }
 
+function getDecisionOutcomes(session) {
+  const outcomes = getState(session).values.decisionOutcomes;
+  return Array.isArray(outcomes) ? outcomes : [];
+}
+
+function getDecisionOutcome(session, reference) {
+  const outcome = getDecisionOutcomes(session).find(
+    (candidate) => candidate.reference === reference,
+  );
+
+  if (!outcome) {
+    return null;
+  }
+
+  const record = getRecords(session).find((candidate) => candidate.reference === reference);
+
+  if (!record) {
+    return null;
+  }
+
+  return {
+    record,
+    queueContext: outcome.queueContext,
+  };
+}
+
 function saveDecision(session, reference, submittedDecision, requestedTab, requestedPage) {
   const validation = validateDecision(submittedDecision);
 
@@ -125,6 +151,9 @@ function saveDecision(session, reference, submittedDecision, requestedTab, reque
     throw new TypeError('Demo casework decision must contain only validated values');
   }
 
+  const previousOutcome = getDecisionOutcomes(session).find(
+    (candidate) => candidate.reference === reference,
+  );
   const request = getRequest(session, reference, requestedTab, requestedPage);
 
   if (!request) {
@@ -142,6 +171,8 @@ function saveDecision(session, reference, submittedDecision, requestedTab, reque
     request.record.status === updatedRecord.status &&
     request.record.queue === updatedRecord.queue &&
     request.record.caseNote === updatedRecord.caseNote;
+  const queueContext =
+    replayed && previousOutcome ? previousOutcome.queueContext : request.queueContext;
 
   if (!replayed) {
     const records = getRecords(session).map((record) =>
@@ -150,9 +181,25 @@ function saveDecision(session, reference, submittedDecision, requestedTab, reque
     demoSessionService.saveCaseworkValue(session, 'records', records);
   }
 
+  const outcome = {
+    reference,
+    queueContext,
+  };
+
+  if (
+    !previousOutcome ||
+    previousOutcome.queueContext.tab !== queueContext.tab ||
+    previousOutcome.queueContext.page !== queueContext.page
+  ) {
+    const outcomes = getDecisionOutcomes(session).filter(
+      (candidate) => candidate.reference !== reference,
+    );
+    demoSessionService.saveCaseworkValue(session, 'decisionOutcomes', [...outcomes, outcome]);
+  }
+
   return {
     record: updatedRecord,
-    queueContext: request.queueContext,
+    queueContext,
     requiresCanonicalRedirect: request.requiresCanonicalRedirect,
     replayed,
   };
@@ -176,6 +223,7 @@ function reset(session) {
 
 module.exports = {
   getAccessRedirect,
+  getDecisionOutcome,
   getQueue,
   getRecords,
   getRequest,

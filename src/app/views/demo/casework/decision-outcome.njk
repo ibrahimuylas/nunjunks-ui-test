@@ -1,0 +1,13 @@
+{% extends "demo/layouts/main.njk" %}
+{% from "govuk/components/notification-banner/macro.njk" import govukNotificationBanner %}
+
+{% block content %}
+  <div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds">
+      <h1 class="govuk-heading-xl">{{ heading }}</h1>
+      {{ govukNotificationBanner(notificationBanner) }}
+      <p class="govuk-body">The updated status is stored only in this fictional casework session.</p>
+      <p class="govuk-body"><a class="govuk-link" href="{{ returnLink.href }}">{{ returnLink.text }}</a></p>
+    </div>
+  </div>
+{% endblock %}

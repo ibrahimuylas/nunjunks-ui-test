@@ -1,0 +1,30 @@
+{% extends "demo/layouts/main.njk" %}
+{% from "govuk/components/back-link/macro.njk" import govukBackLink %}
+{% from "govuk/components/button/macro.njk" import govukButton %}
+{% from "govuk/components/error-summary/macro.njk" import govukErrorSummary %}
+{% from "govuk/components/radios/macro.njk" import govukRadios %}
+{% from "govuk/components/textarea/macro.njk" import govukTextarea %}
+{% from "govuk/components/warning-text/macro.njk" import govukWarningText %}
+
+{% block beforeContent %}
+  {{ govukBackLink(backLink) }}
+{% endblock %}
+
+{% block content %}
+  <div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds">
+      {% if errorSummary %}
+        {{ govukErrorSummary(errorSummary) }}
+      {% endif %}
+      <span class="govuk-caption-xl">{{ caption }}</span>
+      <h1 class="govuk-heading-xl">{{ heading }}</h1>
+      <p class="govuk-body">Record a fictional casework outcome. This does not make a decision about a real support request.</p>
+      <form method="post" action="{{ formAction }}" novalidate>
+        {{ govukRadios(decisionRadios) }}
+        {{ govukTextarea(caseNoteTextarea) }}
+        {{ govukWarningText(warningText) }}
+        {{ govukButton(saveButton) }}
+      </form>
+    </div>
+  </div>
+{% endblock %}

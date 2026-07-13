@@ -181,6 +181,20 @@ function getDemoCaseworkRequest(session, reference, requestedTab, requestedPage)
   return demoCaseworkService.getRequest(session, reference, requestedTab, requestedPage);
 }
 
+function getDemoCaseworkDecisionOutcome(session, reference) {
+  return demoCaseworkService.getDecisionOutcome(session, reference);
+}
+
+function saveDemoCaseworkDecision(session, reference, decision, requestedTab, requestedPage) {
+  return demoCaseworkService.saveDecision(
+    session,
+    reference,
+    decision,
+    requestedTab,
+    requestedPage,
+  );
+}
+
 function resetDemoSupport(session) {
   demoSessionService.resetSupport(session);
 }
@@ -219,9 +233,11 @@ module.exports = {
   markDemoSupportStepCompleted,
   markDemoSupportStepVisited,
   getDemoCaseworkAccessRedirect,
+  getDemoCaseworkDecisionOutcome,
   getDemoCaseworkQueue,
   getDemoCaseworkRequest,
   grantDemoCaseworkAccess,
+  saveDemoCaseworkDecision,
   saveDemoCaseworkValue,
   saveDemoSupportCompletion,
   saveDemoCaseworkCompletion,
