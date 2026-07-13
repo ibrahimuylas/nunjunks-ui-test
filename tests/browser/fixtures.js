@@ -13,8 +13,9 @@ function describeConsoleMessage(message) {
 }
 
 const test = base.test.extend({
+  allowedConsoleMessages: [[], { option: true }],
   browserErrorGuard: [
-    async ({ page }, use) => {
+    async ({ allowedConsoleMessages, page }, use) => {
       const errors = [];
 
       page.on('console', (message) => {
@@ -26,7 +27,14 @@ const test = base.test.extend({
 
       await use();
 
-      base.expect(errors, `Unexpected browser console or page output:\n${errors.join('\n')}`).toEqual([]);
+      const unexpectedErrors = errors.filter((error) => !allowedConsoleMessages.includes(error));
+
+      base
+        .expect(
+          unexpectedErrors,
+          `Unexpected browser console or page output:\n${unexpectedErrors.join('\n')}`,
+        )
+        .toEqual([]);
     },
     { auto: true },
   ],

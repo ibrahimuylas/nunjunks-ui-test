@@ -26,6 +26,7 @@ module.exports = defineConfig({
   projects: [
     {
       name: 'chromium-js',
+      testIgnore: ['**/*-no-js.test.js'],
       use: { browserName: 'chromium', javaScriptEnabled: true },
     },
     {
