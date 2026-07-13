@@ -4,6 +4,10 @@ const { getViewport } = require('./helpers/viewports');
 
 const repositoryRoot = path.resolve(__dirname, '../..');
 const baseURL = 'http://[::1]:3000';
+const javaScriptOnlyTests = [
+  '**/demo-shared-components.test.js',
+  '**/demo-support-enhancements.test.js',
+];
 
 module.exports = defineConfig({
   testDir: __dirname,
@@ -31,6 +35,7 @@ module.exports = defineConfig({
     },
     {
       name: 'chromium-no-js',
+      testIgnore: javaScriptOnlyTests,
       use: { browserName: 'chromium', javaScriptEnabled: false },
     },
   ],
