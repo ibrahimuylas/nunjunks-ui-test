@@ -1,5 +1,8 @@
-// Keep this array in GOV.UK Frontend component-directory order. Later coverage
-// tests consume it in batches, and an array keeps duplicate entries detectable.
+// This is the canonical traceability register for the component demo. Each
+// entry identifies a real route and state plus the selector used as automated
+// render evidence; README.md links here instead of maintaining a second matrix.
+// Keep the array in GOV.UK Frontend component-directory order. Coverage tests
+// consume it in batches, and an array keeps duplicate entries detectable.
 const demoComponentCoverage = [
   {
     component: 'accordion',

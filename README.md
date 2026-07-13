@@ -25,7 +25,7 @@ PORT=3100 npm start
 npm run dev      # start with nodemon
 npm start        # start with node
 npm test         # run Jest and Supertest tests
-npm run test:browser # build, start the app and run the Chromium smoke tests
+npm run test:browser # build, start the app and run the Playwright browser suite
 npm run lint     # run ESLint
 npm run build    # compile Sass and copy GOV.UK assets
 ```
@@ -41,23 +41,20 @@ npm run test:browser
 
 The command builds the generated CSS, JavaScript and assets, starts a test-only server on IPv6
 loopback at `http://[::1]:3000`, and shuts it down after the tests. Using an explicit loopback
-address prevents the harness from accidentally reusing an unrelated IPv4 server. For a manual
-browser check, open `http://localhost:3000` while the test server is running.
+address prevents the harness from accidentally reusing an unrelated IPv4 server.
 
-The legacy start-page smoke test runs in both JavaScript-enabled and JavaScript-disabled
-contexts. In the enhanced context it verifies the runtime markers added by GOV.UK Frontend's
-`initAll`; every context fails on unexpected browser console output or uncaught page errors.
-The demo-shell smoke test uses the shared desktop and mobile viewport sizes in
-`tests/browser/helpers/viewports.js` to check the `/demo` landmarks, scenario entry links and
-horizontal reflow in both contexts.
+The suite runs JavaScript-enabled and JavaScript-disabled Chromium projects. It covers the legacy
+bootstrap and demo shell, completes both fictional journeys without JavaScript, exercises GOV.UK
+enhancements and keyboard/focus behavior, checks mobile and desktop reflow, and scans representative
+states with Axe. Every browser context fails on unexpected console output or uncaught page errors.
+Shared viewport definitions live in `tests/browser/helpers/viewports.js`.
 
-Playwright with Chromium was selected for real-browser interaction because it can exercise the
-same server-rendered page with and without JavaScript. `@axe-core/playwright` was selected for a
-repeatable automated WCAG 2.2 A and AA smoke scan of the rendered shared shell. The automated scan
-runs in the desktop JavaScript-enabled context because Axe's rule runner requires browser script
-timers; separate smoke coverage proves the same shell with JavaScript disabled. It is a regression
-check, not a complete accessibility assessment: manual review remains required before public
-sharing, including keyboard, screen-reader, zoom/reflow and content-safety checks.
+Playwright with Chromium was selected because it can exercise the same server-rendered pages with
+and without JavaScript. `@axe-core/playwright` provides repeatable automated WCAG 2.2 A and AA smoke
+scans in the JavaScript-enabled project; the separate no-JavaScript project proves the essential
+flows without relying on Axe. These are regression checks, not a complete accessibility assessment.
+Manual review is still required before public sharing, including screen-reader, zoom/reflow and
+content-safety review.
 
 ## GOV.UK component demo
 
@@ -71,12 +68,11 @@ Both demo journeys are complete. The demo shell uses neutral fictional branding 
 not to enter real personal information or passwords. Its header and service navigation always
 provide a route back to `/demo`. The existing `/start` journey and all of its URLs remain unchanged.
 
-The caseworker sign-in is a component demonstration, not real authentication. It accepts any
-non-empty made-up value after trimming surrounding whitespace, discards that value immediately and
-does not write it to the session or application logs. Only a boolean access flag is kept in the
-casework session. Protected casework URLs redirect to `/demo/casework/sign-in` until that flag is
-present, and resetting the caseworker journey clears it without changing the public or legacy
-journeys.
+### Caseworker journey
+
+The caseworker sign-in is a component demonstration, not real authentication. Protected casework
+URLs redirect to `/demo/casework/sign-in` until the current session has the demonstration access
+flag described under [Operating boundaries](#operating-boundaries).
 
 The complete caseworker route graph is:
 
@@ -109,7 +105,9 @@ to `Completed`, and persists its status and optional normalized case note only i
 casework session. Refreshing the outcome does not repeat the decision. The caseworker reset restores
 the seeded records and clears fictional access and outcomes without changing the public journey.
 
-The public journey now starts with an explicitly fictional eligibility branch:
+### Public journey
+
+The public journey starts with an explicitly fictional eligibility branch:
 
 ```text
 /demo
@@ -155,15 +153,68 @@ evidence. Valid section edits return to check answers. Changing eligibility to t
 clears dependent answers and routes to the ineligible outcome or the first incomplete task; request
 parameters cannot override those destinations.
 
+The exact change routes are `/demo/support/eligibility/change`,
+`/demo/support/about-you/change`, `/demo/support/support-needs/change` and
+`/demo/support/evidence/change`.
+
 The evidence page accepts one optional demonstration file with PDF, JPG or PNG metadata up to
-2 MB. Its route-scoped multipart parser drains and discards file bytes without buffering them or
-writing them to disk; only a sanitized base filename is kept in the current support session. This
-is a component demonstration, not a production upload or content-scanning service.
+2 MB. It is a component demonstration, not a production upload or content-scanning service; its
+storage behavior is described under [Operating boundaries](#operating-boundaries).
 
 Submission revalidates the stored answers and uses POST-redirect-GET to create one fictional
 reference. Refreshing confirmation or replaying submission keeps that reference. Editing an answer
 after submission invalidates confirmation until the request is submitted again. The public reset
 action on `/demo` clears only the public journey and sends the visitor back to the demo landing page.
+
+### Session and reset behavior
+
+The public and caseworker scenarios occupy separate state below the current Express session. Seeded
+casework records are cloned into that session before they are changed, so answers, task progress,
+references, access flags and decisions do not cross between browsers or scenarios. The legacy
+`/start` journey also keeps its separate session state.
+
+The `/demo` landing page provides two POST-only reset actions:
+
+- `POST /demo/support/reset` clears only public answers, progress and a submitted reference.
+- `POST /demo/casework/reset` restores seeded casework records and clears demonstration access,
+  decisions and outcomes.
+
+Neither reset changes the other scenario, the legacy journey, or the shared cookie-banner choice.
+The cookie banner records an accept or reject demonstration choice in the session but does not set
+analytics or non-essential cookies. This example uses the default in-memory session store, so its
+state is not durable and a server restart clears it.
+
+### Operating boundaries
+
+This demo is deliberately not a service:
+
+- Do not enter real names, dates of birth, support needs, files or passwords. Public answers and
+  case notes are normalized and kept only in the current in-memory demo session.
+- The caseworker sign-in is not identity verification, authentication or authorization. Any
+  non-empty made-up value is accepted, discarded immediately and never logged; only a boolean
+  demonstration access flag is retained.
+- Uploaded bytes are drained and discarded without being buffered or written to disk. Only a
+  sanitized base filename can be retained in the support session.
+- Eligibility, references, casework records and decisions are fictional. They make no claim about
+  a real service, entitlement, outcome or response time.
+- The demo has no database, file store, analytics, email, notification or external API integration.
+  It does not transmit demo answers, passwords, file contents or decisions to external systems.
+
+### Component coverage traceability
+
+GOV.UK Frontend is lockfile-resolved to `5.14.0`. The canonical
+[component coverage register](src/app/config/demo-component-coverage.js) contains one ordered entry
+for each of its 36 component directories. Every entry names the real `/demo` route, the session or
+validation state needed to render it, and the selector used as automated evidence. The register is
+the single source of truth for this mapping; this README does not duplicate a matrix that could
+drift.
+
+`tests/unit/demo-component-coverage.test.js` compares the register with the installed package and
+fails on a version mismatch or a missing, extra, duplicate or incomplete entry.
+`tests/integration/demo-component-coverage.test.js` then establishes each registered state through
+the real journeys and checks component-specific visible content and semantics for all 36 entries.
+Run those checks with `npm test`; run the complete real-browser evidence with
+`npm run test:browser`.
 
 ## GOV.UK Frontend wiring
 
