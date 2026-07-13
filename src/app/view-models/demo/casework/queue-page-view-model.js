@@ -1,37 +1,12 @@
-const { URLSearchParams } = require('node:url');
 const { demoCaseworkTabs } = require('../../../config/demo-casework-records');
 const { demoShellViewModel } = require('../shell-view-model');
+const {
+  caseworkQueueContextPath,
+  caseworkQueueTabLabel,
+  caseworkRecordViewModel,
+} = require('./record-view-model');
 
 const queuePath = '/demo/casework/queue';
-const dateFormatter = new Intl.DateTimeFormat('en-GB', {
-  day: 'numeric',
-  month: 'long',
-  year: 'numeric',
-  timeZone: 'UTC',
-});
-
-const tabLabels = Object.freeze({
-  unassigned: 'Unassigned',
-  'my-requests': 'My requests',
-  completed: 'Completed',
-});
-
-const urgencyLabels = Object.freeze({
-  immediate: 'Immediate',
-  high: 'High',
-  routine: 'Routine',
-});
-
-const statusTags = Object.freeze({
-  unassigned: Object.freeze({ text: 'Unassigned', classes: 'govuk-tag--grey' }),
-  assigned: Object.freeze({ text: 'Assigned', classes: 'govuk-tag--blue' }),
-  priority: Object.freeze({ text: 'Priority', classes: 'govuk-tag--red' }),
-  standard: Object.freeze({ text: 'Standard', classes: 'govuk-tag--green' }),
-  'more-information-needed': Object.freeze({
-    text: 'More information needed',
-    classes: 'govuk-tag--yellow',
-  }),
-});
 
 const tableHead = Object.freeze([
   Object.freeze({ text: 'Reference' }),
@@ -41,34 +16,18 @@ const tableHead = Object.freeze([
   Object.freeze({ text: 'Status' }),
 ]);
 
-function formatDate(receivedDate) {
-  return dateFormatter.format(new Date(`${receivedDate}T00:00:00Z`));
-}
-
-function queueContextPath(path, tab, page) {
-  const query = new URLSearchParams({ tab, page: String(page) });
-  return `${path}?${query}`;
-}
-
 function queueRowViewModel(record, tab, page) {
-  const urgency = urgencyLabels[record.urgency];
-  const statusTag = statusTags[record.status];
-
-  if (!urgency || !statusTag) {
-    throw new TypeError('Demo casework urgency and status must be allow-listed');
-  }
+  const displayRecord = caseworkRecordViewModel(record);
 
   return {
     reference: record.reference,
-    requestHref: queueContextPath(
+    requestHref: caseworkQueueContextPath(
       `/demo/casework/requests/${encodeURIComponent(record.reference)}`,
       tab,
       page,
     ),
     applicantAlias: record.applicantAlias,
-    receivedDate: formatDate(record.receivedDate),
-    urgency,
-    statusTag,
+    ...displayRecord,
   };
 }
 
@@ -82,28 +41,30 @@ function paginationViewModel(tab, label) {
   return {
     landmarkLabel: `${label} fictional requests pagination`,
     previous:
-      currentPage > 1 ? { href: queueContextPath(queuePath, tab.key, currentPage - 1) } : undefined,
+      currentPage > 1
+        ? { href: caseworkQueueContextPath(queuePath, tab.key, currentPage - 1) }
+        : undefined,
     items: Array.from({ length: pageCount }, (_, index) => {
       const page = index + 1;
 
       return {
         number: page,
-        href: queueContextPath(queuePath, tab.key, page),
+        href: caseworkQueueContextPath(queuePath, tab.key, page),
         current: page === currentPage,
       };
     }),
     next:
       currentPage < pageCount
-        ? { href: queueContextPath(queuePath, tab.key, currentPage + 1) }
+        ? { href: caseworkQueueContextPath(queuePath, tab.key, currentPage + 1) }
         : undefined,
   };
 }
 
 function queueTableViewModel(tab) {
-  const label = tabLabels[tab.key];
+  const label = caseworkQueueTabLabel(tab.key);
 
-  if (!label || !tab.pagination) {
-    throw new TypeError('Demo casework queue tab must be allow-listed');
+  if (!tab.pagination) {
+    throw new TypeError('Demo casework queue pagination is required');
   }
 
   return {
@@ -118,7 +79,7 @@ function queueTableViewModel(tab) {
 
 function filterLinkViewModel(tab, selectedTab) {
   return {
-    text: tabLabels[tab],
+    text: caseworkQueueTabLabel(tab),
     href: `${queuePath}?tab=${tab}`,
     current: tab === selectedTab,
   };
@@ -156,7 +117,7 @@ function caseworkQueuePageViewModel({ selectedTab = demoCaseworkTabs[0], tabs = 
 
         return {
           id: `casework-queue-${key}`,
-          label: tabLabels[key],
+          label: caseworkQueueTabLabel(key),
           table: queueTableViewModel(tab),
         };
       }),
