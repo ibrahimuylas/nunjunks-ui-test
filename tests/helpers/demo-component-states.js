@@ -1,7 +1,7 @@
 const request = require('supertest');
 const { createApp } = require('../../src/app/app');
 const { signInCaseworker } = require('./demo-casework');
-const { chooseEligibility } = require('./demo-support');
+const { chooseEligibility, completeRequiredSections } = require('./demo-support');
 
 const requestReference = 'DEMO-CW-1001';
 
@@ -14,6 +14,7 @@ async function getRoute(agent, route) {
 }
 
 const stateRenderers = new Map([
+  ['/demo::default', (agent, entry) => getRoute(agent, entry.route)],
   ['/demo/support/start::default', (agent, entry) => getRoute(agent, entry.route)],
   ['/demo/support/eligibility::default', (agent, entry) => getRoute(agent, entry.route)],
   [
@@ -41,9 +42,41 @@ const stateRenderers = new Map([
     },
   ],
   [
+    '/demo/support/evidence::default',
+    async (agent, entry) => {
+      await chooseEligibility(agent);
+      return getRoute(agent, entry.route);
+    },
+  ],
+  [
     '/demo/support/eligibility::invalid-submission',
     (agent, entry) => agent.post(entry.route).type('form').send({}).expect(400),
   ],
+  [
+    '/demo/casework/queue::newly-assigned',
+    async (agent, entry) => {
+      await signInCaseworker(agent);
+      return getRoute(agent, entry.route);
+    },
+  ],
+  [
+    '/demo/casework/queue?tab=unassigned&page=2::paginated',
+    async (agent, entry) => {
+      await signInCaseworker(agent);
+      return getRoute(agent, entry.route);
+    },
+  ],
+  [
+    '/demo/support/confirmation::submitted',
+    async (agent, entry) => {
+      await chooseEligibility(agent);
+      await completeRequiredSections(agent);
+      await agent.post('/demo/support/check-answers').expect(302).expect('Location', entry.route);
+
+      return getRoute(agent, entry.route);
+    },
+  ],
+  ['/demo/casework/sign-in::default', (agent, entry) => getRoute(agent, entry.route)],
 ]);
 
 async function renderDemoComponentState(entry) {
