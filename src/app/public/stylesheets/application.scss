@@ -14,3 +14,21 @@ $govuk-assets-path: "/public/assets/";
 .js-enabled .app-js-only {
   display: block;
 }
+
+.app-casework-queue-table {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 100%;
+  overflow-x: auto;
+
+  &:focus {
+    outline: $govuk-focus-width solid $govuk-focus-colour;
+    outline-offset: 0;
+  }
+}
+
+.app-casework-queue-table__table {
+  // Preserve the five-column relationships while the parent owns narrow-screen overflow.
+  width: max-content;
+  min-width: 100%;
+}

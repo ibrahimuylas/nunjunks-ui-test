@@ -19,13 +19,21 @@
     ] %}
     {% set ignored = rows.push(tableRow) %}
   {% endfor %}
-  {{ govukTable({
-    caption: table.caption,
-    captionClasses: "govuk-table__caption--m",
-    firstCellIsHeader: true,
-    head: table.head,
-    rows: rows
-  }) }}
+  <div
+    class="app-casework-queue-table"
+    role="region"
+    aria-label="{{ table.caption }}"
+    tabindex="0"
+  >
+    {{ govukTable({
+      caption: table.caption,
+      captionClasses: "govuk-table__caption--m",
+      classes: "app-casework-queue-table__table",
+      firstCellIsHeader: true,
+      head: table.head,
+      rows: rows
+    }) }}
+  </div>
   {% if table.pagination %}
     {{ govukPagination(table.pagination) }}
   {% endif %}
