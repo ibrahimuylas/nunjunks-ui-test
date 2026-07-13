@@ -7,31 +7,10 @@ const {
   queueFilterPath,
   signInCaseworker,
 } = require('./helpers/demo-casework');
+const { expectLogicalMainHeadingOrder } = require('./helpers/demo-content');
 const { VIEWPORTS } = require('./helpers/viewports');
 
 const selectedTab = 'my-requests';
-
-async function expectLogicalMainHeadingOrder(page) {
-  const headingLevels = await page
-    .locator(
-      '#main-content h1, #main-content h2, #main-content h3, #main-content h4, #main-content h5, #main-content h6',
-    )
-    .evaluateAll((headings) => headings.map((heading) => Number(heading.tagName.slice(1))));
-
-  expect(headingLevels.length, 'main content should have at least one heading').toBeGreaterThan(0);
-  expect(headingLevels[0], 'main content should start with its page heading').toBe(1);
-  expect(
-    headingLevels.filter((level) => level === 1),
-    'main content should have one h1',
-  ).toHaveLength(1);
-
-  headingLevels.slice(1).forEach((level, index) => {
-    expect(
-      level,
-      `heading level h${level} should not skip after h${headingLevels[index]}`,
-    ).toBeLessThanOrEqual(headingLevels[index] + 1);
-  });
-}
 
 async function expectResponsiveReflow(page, viewportName) {
   const widths = await page.locator('html').evaluate((element) => ({
