@@ -173,6 +173,10 @@ function getDemoCaseworkAccessRedirect(session) {
   return demoCaseworkService.getAccessRedirect(session);
 }
 
+function getDemoCaseworkQueue(session, requestedTab) {
+  return demoCaseworkService.getQueue(session, requestedTab);
+}
+
 function resetDemoSupport(session) {
   demoSessionService.resetSupport(session);
 }
@@ -211,6 +215,7 @@ module.exports = {
   markDemoSupportStepCompleted,
   markDemoSupportStepVisited,
   getDemoCaseworkAccessRedirect,
+  getDemoCaseworkQueue,
   grantDemoCaseworkAccess,
   saveDemoCaseworkValue,
   saveDemoSupportCompletion,

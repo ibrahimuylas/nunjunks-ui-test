@@ -1,0 +1,60 @@
+{% extends "demo/layouts/main.njk" %}
+{% from "govuk/components/notification-banner/macro.njk" import govukNotificationBanner %}
+{% from "govuk/components/table/macro.njk" import govukTable %}
+{% from "govuk/components/tabs/macro.njk" import govukTabs %}
+{% from "govuk/components/tag/macro.njk" import govukTag %}
+
+{% macro queueTable(table) %}
+  {% set rows = [] %}
+  {% for row in table.rows %}
+    {% set statusHtml %}{{ govukTag(row.statusTag) }}{% endset %}
+    {% set tableRow = [
+      { text: row.reference },
+      { text: row.applicantAlias },
+      { text: row.receivedDate },
+      { text: row.urgency },
+      { html: statusHtml }
+    ] %}
+    {% set ignored = rows.push(tableRow) %}
+  {% endfor %}
+  {{ govukTable({
+    caption: table.caption,
+    captionClasses: "govuk-table__caption--m",
+    firstCellIsHeader: true,
+    head: table.head,
+    rows: rows
+  }) }}
+{% endmacro %}
+
+{% block content %}
+  <h1 class="govuk-heading-xl">{{ heading }}</h1>
+  <p class="govuk-body-l">Review fictional emergency housing support requests.</p>
+
+  {{ govukNotificationBanner(notificationBanner) }}
+
+  <nav aria-label="Filter fictional requests" class="govuk-!-margin-bottom-6">
+    <ul class="govuk-list govuk-list--inline">
+      {% for item in filterLinks %}
+        <li>
+          <a class="govuk-link" href="{{ item.href }}"{% if item.current %} aria-current="page"{% endif %}>{{ item.text }}</a>
+        </li>
+      {% endfor %}
+    </ul>
+  </nav>
+
+  {% set tabItems = [] %}
+  {% for item in tabs.items %}
+    {% set panelHtml %}{{ queueTable(item.table) }}{% endset %}
+    {% set ignored = tabItems.push({
+      id: item.id,
+      label: item.label,
+      panel: { html: panelHtml }
+    }) %}
+  {% endfor %}
+
+  {{ govukTabs({
+    idPrefix: tabs.idPrefix,
+    title: tabs.title,
+    items: tabItems
+  }) }}
+{% endblock %}

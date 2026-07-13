@@ -91,6 +91,24 @@ describe('demo casework service', () => {
     expect(records.length).toBeGreaterThan(demoCaseworkPageSize);
   });
 
+  test.each(demoCaseworkTabs)('selects and filters the %s queue', (selectedTab) => {
+    const queue = demoCaseworkService.getQueue({}, selectedTab);
+
+    expect(queue.selectedTab).toBe(selectedTab);
+    expect(queue.tabs.map((tab) => tab.key)).toEqual(demoCaseworkTabs);
+    queue.tabs.forEach((tab) => {
+      expect(tab.records).toHaveLength(6);
+      expect(tab.records.every((record) => record.queue === tab.key)).toBe(true);
+    });
+  });
+
+  test.each([undefined, '', 'unknown', ['completed']])(
+    'defaults an empty or unknown queue filter %p to unassigned',
+    (requestedTab) => {
+      expect(demoCaseworkService.getQueue({}, requestedTab).selectedTab).toBe('unassigned');
+    },
+  );
+
   test('clones the fixtures lazily into a casework session', () => {
     const session = {};
 
