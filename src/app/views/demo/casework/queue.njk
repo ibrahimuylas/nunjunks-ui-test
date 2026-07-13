@@ -1,5 +1,6 @@
 {% extends "demo/layouts/main.njk" %}
 {% from "govuk/components/notification-banner/macro.njk" import govukNotificationBanner %}
+{% from "govuk/components/pagination/macro.njk" import govukPagination %}
 {% from "govuk/components/table/macro.njk" import govukTable %}
 {% from "govuk/components/tabs/macro.njk" import govukTabs %}
 {% from "govuk/components/tag/macro.njk" import govukTag %}
@@ -7,9 +8,10 @@
 {% macro queueTable(table) %}
   {% set rows = [] %}
   {% for row in table.rows %}
+    {% set referenceHtml %}<a class="govuk-link" href="{{ row.requestHref }}">{{ row.reference }}</a>{% endset %}
     {% set statusHtml %}{{ govukTag(row.statusTag) }}{% endset %}
     {% set tableRow = [
-      { text: row.reference },
+      { html: referenceHtml },
       { text: row.applicantAlias },
       { text: row.receivedDate },
       { text: row.urgency },
@@ -24,6 +26,9 @@
     head: table.head,
     rows: rows
   }) }}
+  {% if table.pagination %}
+    {{ govukPagination(table.pagination) }}
+  {% endif %}
 {% endmacro %}
 
 {% block content %}

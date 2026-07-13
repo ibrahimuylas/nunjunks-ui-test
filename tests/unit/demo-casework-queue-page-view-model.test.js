@@ -1,4 +1,5 @@
 const {
+  demoCaseworkPageSize,
   demoCaseworkRecords,
   demoCaseworkTabs,
 } = require('../../src/app/config/demo-casework-records');
@@ -6,13 +7,24 @@ const {
   caseworkQueuePageViewModel,
 } = require('../../src/app/view-models/demo/casework/queue-page-view-model');
 
-function queueFixture(selectedTab = 'unassigned', records = demoCaseworkRecords) {
+function queueFixture(selectedTab = 'unassigned', records = demoCaseworkRecords, selectedPage = 1) {
   return {
     selectedTab,
-    tabs: demoCaseworkTabs.map((key) => ({
-      key,
-      records: records.filter((record) => record.queue === key),
-    })),
+    tabs: demoCaseworkTabs.map((key) => {
+      const filteredRecords = records.filter((record) => record.queue === key);
+      const currentPage = key === selectedTab ? selectedPage : 1;
+      const firstRecordIndex = (currentPage - 1) * demoCaseworkPageSize;
+
+      return {
+        key,
+        records: filteredRecords.slice(firstRecordIndex, firstRecordIndex + demoCaseworkPageSize),
+        pagination: {
+          currentPage,
+          pageCount: Math.max(1, Math.ceil(filteredRecords.length / demoCaseworkPageSize)),
+          totalRecords: filteredRecords.length,
+        },
+      };
+    }),
   };
 }
 
@@ -26,7 +38,7 @@ describe('demo casework queue page view model', () => {
 
     expect(model.tabs.items.map((item) => item.label)).toEqual(labels);
     expect(model.tabs.items[0].id).toBe(`casework-queue-${selectedTab}`);
-    expect(model.tabs.items[0].table.rows).toHaveLength(6);
+    expect(model.tabs.items[0].table.rows).toHaveLength(5);
     expect(model.filterLinks).toEqual([
       {
         text: 'Unassigned',
@@ -52,6 +64,7 @@ describe('demo casework queue page view model', () => {
 
     expect(rows[0]).toEqual({
       reference: 'DEMO-CW-1001',
+      requestHref: '/demo/casework/requests/DEMO-CW-1001?tab=unassigned&page=1',
       applicantAlias: 'Demo household Aster',
       receivedDate: '12 July 2026',
       urgency: 'Immediate',
@@ -64,6 +77,49 @@ describe('demo casework queue page view model', () => {
       { text: 'Standard', classes: 'govuk-tag--green' },
       { text: 'More information needed', classes: 'govuk-tag--yellow' },
     ]);
+  });
+
+  test('preserves validated tab and page context in pagination and request links', () => {
+    const model = caseworkQueuePageViewModel(queueFixture('my-requests', demoCaseworkRecords, 2));
+    const selectedTable = model.tabs.items[0].table;
+
+    expect(selectedTable.rows).toEqual([
+      expect.objectContaining({
+        reference: 'DEMO-CW-2006',
+        requestHref: '/demo/casework/requests/DEMO-CW-2006?tab=my-requests&page=2',
+      }),
+    ]);
+    expect(selectedTable.pagination).toEqual({
+      landmarkLabel: 'My requests fictional requests pagination',
+      previous: { href: '/demo/casework/queue?tab=my-requests&page=1' },
+      items: [
+        {
+          number: 1,
+          href: '/demo/casework/queue?tab=my-requests&page=1',
+          current: false,
+        },
+        {
+          number: 2,
+          href: '/demo/casework/queue?tab=my-requests&page=2',
+          current: true,
+        },
+      ],
+      next: undefined,
+    });
+    expect(model.tabs.items[1].table.rows[0].requestHref).toBe(
+      '/demo/casework/requests/DEMO-CW-1001?tab=unassigned&page=1',
+    );
+  });
+
+  test('omits pagination for queues that fit on one page', () => {
+    const records = [
+      demoCaseworkRecords.find((record) => record.queue === 'unassigned'),
+      demoCaseworkRecords.find((record) => record.queue === 'my-requests'),
+      demoCaseworkRecords.find((record) => record.queue === 'completed'),
+    ];
+    const model = caseworkQueuePageViewModel(queueFixture('unassigned', records));
+
+    expect(model.tabs.items.every((item) => item.table.pagination === null)).toBe(true);
   });
 
   test('prepares the casework shell, notification and table headings', () => {

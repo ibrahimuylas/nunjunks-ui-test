@@ -16,6 +16,17 @@ const allowedSupportTypes = new Set([
 ]);
 const completedStatuses = new Set(['priority', 'standard', 'more-information-needed']);
 
+function caseworkSessionWith(records) {
+  return {
+    demo: {
+      casework: {
+        values: { records },
+        completion: {},
+      },
+    },
+  };
+}
+
 function allNestedValuesAreFrozen(value) {
   if (value === null || typeof value !== 'object') {
     return true;
@@ -95,19 +106,80 @@ describe('demo casework service', () => {
     const queue = demoCaseworkService.getQueue({}, selectedTab);
 
     expect(queue.selectedTab).toBe(selectedTab);
+    expect(queue.selectedPage).toBe(1);
+    expect(queue.requiresCanonicalRedirect).toBe(false);
     expect(queue.tabs.map((tab) => tab.key)).toEqual(demoCaseworkTabs);
     queue.tabs.forEach((tab) => {
-      expect(tab.records).toHaveLength(6);
+      expect(tab.records).toHaveLength(demoCaseworkPageSize);
       expect(tab.records.every((record) => record.queue === tab.key)).toBe(true);
+      expect(tab.pagination).toEqual({ currentPage: 1, pageCount: 2, totalRecords: 6 });
     });
   });
 
-  test.each([undefined, '', 'unknown', ['completed']])(
+  test.each([
+    [undefined, false],
+    ['', true],
+    ['unknown', true],
+    [['completed'], true],
+  ])(
     'defaults an empty or unknown queue filter %p to unassigned',
-    (requestedTab) => {
-      expect(demoCaseworkService.getQueue({}, requestedTab).selectedTab).toBe('unassigned');
+    (requestedTab, requiresCanonicalRedirect) => {
+      const queue = demoCaseworkService.getQueue({}, requestedTab);
+
+      expect(queue.selectedTab).toBe('unassigned');
+      expect(queue.requiresCanonicalRedirect).toBe(requiresCanonicalRedirect);
     },
   );
+
+  test.each([
+    [1, ['DEMO-CW-4001', 'DEMO-CW-4002', 'DEMO-CW-4003', 'DEMO-CW-4004', 'DEMO-CW-4005']],
+    [2, ['DEMO-CW-4006', 'DEMO-CW-4007', 'DEMO-CW-4008', 'DEMO-CW-4009', 'DEMO-CW-4010']],
+    [3, ['DEMO-CW-4011', 'DEMO-CW-4012']],
+  ])('returns the expected records for queue page %i', (page, expectedReferences) => {
+    const records = Array.from({ length: 12 }, (_, index) => ({
+      ...demoCaseworkRecords[index % 6],
+      reference: `DEMO-CW-${4001 + index}`,
+      queue: 'unassigned',
+    }));
+    const queue = demoCaseworkService.getQueue(
+      caseworkSessionWith(records),
+      'unassigned',
+      String(page),
+    );
+    const selectedQueue = queue.tabs.find((tab) => tab.key === 'unassigned');
+
+    expect(selectedQueue.records.map((record) => record.reference)).toEqual(expectedReferences);
+    expect(selectedQueue.pagination).toEqual({
+      currentPage: page,
+      pageCount: 3,
+      totalRecords: 12,
+    });
+    expect(queue.selectedPage).toBe(page);
+    expect(queue.requiresCanonicalRedirect).toBe(false);
+  });
+
+  test.each(['', '0', '-1', '1.5', '2-and-more', '01', ['2']])(
+    'canonicalizes invalid queue page %p to the first page',
+    (requestedPage) => {
+      const queue = demoCaseworkService.getQueue({}, 'my-requests', requestedPage);
+
+      expect(queue.selectedPage).toBe(1);
+      expect(queue.requiresCanonicalRedirect).toBe(true);
+      expect(queue.tabs.find((tab) => tab.key === 'my-requests').records[0].reference).toBe(
+        'DEMO-CW-2001',
+      );
+    },
+  );
+
+  test('canonicalizes an out-of-range page to the last available page', () => {
+    const queue = demoCaseworkService.getQueue({}, 'completed', '99');
+    const selectedQueue = queue.tabs.find((tab) => tab.key === 'completed');
+
+    expect(queue.selectedPage).toBe(2);
+    expect(queue.requiresCanonicalRedirect).toBe(true);
+    expect(selectedQueue.pagination).toEqual({ currentPage: 2, pageCount: 2, totalRecords: 6 });
+    expect(selectedQueue.records.map((record) => record.reference)).toEqual(['DEMO-CW-3006']);
+  });
 
   test('clones the fixtures lazily into a casework session', () => {
     const session = {};

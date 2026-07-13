@@ -173,8 +173,8 @@ function getDemoCaseworkAccessRedirect(session) {
   return demoCaseworkService.getAccessRedirect(session);
 }
 
-function getDemoCaseworkQueue(session, requestedTab) {
-  return demoCaseworkService.getQueue(session, requestedTab);
+function getDemoCaseworkQueue(session, requestedTab, requestedPage) {
+  return demoCaseworkService.getQueue(session, requestedTab, requestedPage);
 }
 
 function resetDemoSupport(session) {

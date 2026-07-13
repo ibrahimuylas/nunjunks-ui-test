@@ -1,3 +1,4 @@
+const { URLSearchParams } = require('node:url');
 const { demoCaseworkTabs } = require('../../../config/demo-casework-records');
 const { demoShellViewModel } = require('../shell-view-model');
 
@@ -44,7 +45,12 @@ function formatDate(receivedDate) {
   return dateFormatter.format(new Date(`${receivedDate}T00:00:00Z`));
 }
 
-function queueRowViewModel(record) {
+function queueContextPath(path, tab, page) {
+  const query = new URLSearchParams({ tab, page: String(page) });
+  return `${path}?${query}`;
+}
+
+function queueRowViewModel(record, tab, page) {
   const urgency = urgencyLabels[record.urgency];
   const statusTag = statusTags[record.status];
 
@@ -54,6 +60,11 @@ function queueRowViewModel(record) {
 
   return {
     reference: record.reference,
+    requestHref: queueContextPath(
+      `/demo/casework/requests/${encodeURIComponent(record.reference)}`,
+      tab,
+      page,
+    ),
     applicantAlias: record.applicantAlias,
     receivedDate: formatDate(record.receivedDate),
     urgency,
@@ -61,17 +72,47 @@ function queueRowViewModel(record) {
   };
 }
 
+function paginationViewModel(tab, label) {
+  const { currentPage, pageCount } = tab.pagination;
+
+  if (pageCount <= 1) {
+    return null;
+  }
+
+  return {
+    landmarkLabel: `${label} fictional requests pagination`,
+    previous:
+      currentPage > 1 ? { href: queueContextPath(queuePath, tab.key, currentPage - 1) } : undefined,
+    items: Array.from({ length: pageCount }, (_, index) => {
+      const page = index + 1;
+
+      return {
+        number: page,
+        href: queueContextPath(queuePath, tab.key, page),
+        current: page === currentPage,
+      };
+    }),
+    next:
+      currentPage < pageCount
+        ? { href: queueContextPath(queuePath, tab.key, currentPage + 1) }
+        : undefined,
+  };
+}
+
 function queueTableViewModel(tab) {
   const label = tabLabels[tab.key];
 
-  if (!label) {
+  if (!label || !tab.pagination) {
     throw new TypeError('Demo casework queue tab must be allow-listed');
   }
 
   return {
     caption: `${label} fictional requests`,
     head: tableHead,
-    rows: tab.records.map(queueRowViewModel),
+    rows: tab.records.map((record) =>
+      queueRowViewModel(record, tab.key, tab.pagination.currentPage),
+    ),
+    pagination: paginationViewModel(tab, label),
   };
 }
 
@@ -90,7 +131,7 @@ function caseworkQueuePageViewModel({ selectedTab = demoCaseworkTabs[0], tabs = 
 
   const tabsByKey = new Map(tabs.map((tab) => [tab.key, tab]));
   const selectedFirst = [selectedTab, ...demoCaseworkTabs.filter((tab) => tab !== selectedTab)];
-  const assignedCount = tabsByKey.get('my-requests')?.records.length || 0;
+  const assignedCount = tabsByKey.get('my-requests')?.pagination?.totalRecords || 0;
 
   return {
     ...demoShellViewModel({
@@ -107,7 +148,11 @@ function caseworkQueuePageViewModel({ selectedTab = demoCaseworkTabs[0], tabs = 
       idPrefix: 'casework-queue',
       title: 'Fictional request queues',
       items: selectedFirst.map((key) => {
-        const tab = tabsByKey.get(key) || { key, records: [] };
+        const tab = tabsByKey.get(key) || {
+          key,
+          records: [],
+          pagination: { currentPage: 1, pageCount: 1, totalRecords: 0 },
+        };
 
         return {
           id: `casework-queue-${key}`,
