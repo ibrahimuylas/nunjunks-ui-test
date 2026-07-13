@@ -67,24 +67,35 @@ namespace. Open `/demo` to choose between these stable scenario entry points:
 - `/demo/support/start` — the public support-request journey
 - `/demo/casework/sign-in` — the caseworker triage journey
 
-The landing page links to both entry points; their journey pages are delivered in later increments.
-The demo shell uses neutral fictional branding and tells visitors not to enter real personal
-information or passwords. Its header and service navigation always provide a route back to
-`/demo`. The existing `/start` journey and all of its URLs remain unchanged.
+The public journey is complete. The caseworker entry point is stable, but its pages are delivered
+in later increments. The demo shell uses neutral fictional branding and tells visitors not to enter
+real personal information or passwords. Its header and service navigation always provide a route
+back to `/demo`. The existing `/start` journey and all of its URLs remain unchanged.
 
 The public journey now starts with an explicitly fictional eligibility branch:
 
 ```text
-/demo/support/start
+/demo
   |
-/demo/support/eligibility
+  |-- /demo/support/start
+  |        |
+  |   /demo/support/eligibility
+  |        |
+  |        |-- ineligible --> /demo/support/ineligible
+  |        |                         |
+  |        |                         v
+  |        |                 /demo/support/eligibility/change
+  |        |
+  |        `-- eligible ----> /demo/support/tasks
+  |                                  |
+  |                                  |-- /demo/support/about-you
+  |                                  |-- /demo/support/support-needs
+  |                                  |-- /demo/support/evidence
+  |                                  `-- /demo/support/check-answers
+  |                                             |
+  |                                             `-- POST --> /demo/support/confirmation
   |
-  |-- eligible ----> /demo/support/tasks
-  |
-  |-- ineligible --> /demo/support/ineligible
-                         |
-                         v
-                 /demo/support/eligibility/change
+  `-- POST /demo/support/reset --> /demo
 ```
 
 The eligible destination is the public application task list.
@@ -100,10 +111,22 @@ remains at `Cannot start yet` until all three sections are complete, and direct 
 to the first incomplete section in the order shown. Every section route requires the eligible
 branch answer.
 
+Each completed section returns to the task list. Its normal back link returns to the task list,
+except for the evidence page's linear back link to support needs. Once every section is complete,
+check answers provides fixed change routes for eligibility, about-you details, support needs and
+evidence. Valid section edits return to check answers. Changing eligibility to the other branch
+clears dependent answers and routes to the ineligible outcome or the first incomplete task; request
+parameters cannot override those destinations.
+
 The evidence page accepts one optional demonstration file with PDF, JPG or PNG metadata up to
 2 MB. Its route-scoped multipart parser drains and discards file bytes without buffering them or
 writing them to disk; only a sanitized base filename is kept in the current support session. This
 is a component demonstration, not a production upload or content-scanning service.
+
+Submission revalidates the stored answers and uses POST-redirect-GET to create one fictional
+reference. Refreshing confirmation or replaying submission keeps that reference. Editing an answer
+after submission invalidates confirmation until the request is submitted again. The public reset
+action on `/demo` clears only the public journey and sends the visitor back to the demo landing page.
 
 ## GOV.UK Frontend wiring
 
