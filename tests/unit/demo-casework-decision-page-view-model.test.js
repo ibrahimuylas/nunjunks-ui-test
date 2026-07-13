@@ -69,16 +69,17 @@ describe('demo casework decision page view model', () => {
     expect(model.caseNoteTextarea.errorMessage).toEqual({ text: noteError.text });
   });
 
-  test('prepares a success outcome with status and same-context return', () => {
+  test('prepares an explicitly fictional success outcome with same-context return', () => {
     const model = caseworkDecisionOutcomePageViewModel({
       record: { ...record, status: 'more-information-needed', queue: 'completed' },
       queueContext,
     });
 
-    expect(model.pageTitle).toBe('Decision saved for DEMO-CW-2006');
+    expect(model.pageTitle).toBe('Fictional decision saved for DEMO-CW-2006');
+    expect(model.heading).toBe('Fictional decision saved for DEMO-CW-2006');
     expect(model.notificationBanner).toEqual({
       type: 'success',
-      text: 'Request DEMO-CW-2006 was recorded as More information needed.',
+      text: 'Fictional request DEMO-CW-2006 was recorded as More information needed for this demonstration.',
     });
     expect(model.returnLink).toEqual({
       text: 'Return to the same fictional request queue',

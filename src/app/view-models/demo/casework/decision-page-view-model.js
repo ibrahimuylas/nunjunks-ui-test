@@ -95,16 +95,17 @@ function caseworkDecisionOutcomePageViewModel({ record, queueContext } = {}) {
   }
 
   const status = caseworkRecordViewModel(record).statusTag.text;
+  const heading = `Fictional decision saved for ${record.reference}`;
 
   return {
     ...demoShellViewModel({
-      pageTitle: `Decision saved for ${record.reference}`,
+      pageTitle: heading,
       navigationSection: 'casework',
     }),
-    heading: `Decision saved for ${record.reference}`,
+    heading,
     notificationBanner: {
       type: 'success',
-      text: `Request ${record.reference} was recorded as ${status}.`,
+      text: `Fictional request ${record.reference} was recorded as ${status} for this demonstration.`,
     },
     returnLink: {
       text: 'Return to the same fictional request queue',

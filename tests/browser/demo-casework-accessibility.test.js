@@ -186,10 +186,10 @@ for (const [viewportName, viewport] of Object.entries(VIEWPORTS)) {
         await page.getByRole('button', { name: 'Save demonstration decision' }).click();
 
         await expect(page.getByRole('heading', { level: 1 })).toHaveText(
-          `Decision saved for ${journeyRecord.reference}`,
+          `Fictional decision saved for ${journeyRecord.reference}`,
         );
         await expect(page.getByRole('alert')).toContainText(
-          `Request ${journeyRecord.reference} was recorded as Priority.`,
+          `Fictional request ${journeyRecord.reference} was recorded as Priority for this demonstration.`,
         );
         await expectAccessibleResponsiveState(page, makeAxeBuilder, viewportName, {
           name: 'decision outcome banner',

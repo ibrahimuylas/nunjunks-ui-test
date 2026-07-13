@@ -60,7 +60,7 @@ describe('demo casework decision flow', () => {
     expect(response.text).not.toContain('<fictional>');
   });
 
-  test('uses POST-redirect-GET for a stable, replay-safe saved outcome', async () => {
+  test('uses POST-redirect-GET for a stable, explicitly fictional saved outcome', async () => {
     const agent = await signedInAgent();
     const decision = {
       decision: 'priority',
@@ -80,11 +80,16 @@ describe('demo casework decision flow', () => {
     expect(firstOutcome.text).toMatch(
       /class="[^"]*\bgovuk-notification-banner--success\b[^"]*"[^>]*role="alert"/,
     );
-    expect(firstOutcome.text).toContain('Request DEMO-CW-1001 was recorded as Priority.');
+    expect(firstOutcome.text).toContain('Fictional decision saved for DEMO-CW-1001');
+    expect(firstOutcome.text).toContain(
+      'Fictional request DEMO-CW-1001 was recorded as Priority for this demonstration.',
+    );
     expect(firstOutcome.text).toContain('href="/demo/casework/queue?tab=unassigned&amp;page=1"');
 
     const refreshedOutcome = await agent.get(outcomePath).expect(200);
-    expect(refreshedOutcome.text).toContain('Request DEMO-CW-1001 was recorded as Priority.');
+    expect(refreshedOutcome.text).toContain(
+      'Fictional request DEMO-CW-1001 was recorded as Priority for this demonstration.',
+    );
 
     await agent
       .post(formPath)

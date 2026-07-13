@@ -148,10 +148,10 @@ test.describe('caseworker journey without JavaScript', () => {
           outcomePath(journeyRecord.reference, selectedTab, selectedPage),
         );
         await expect(page.getByRole('heading', { level: 1 })).toHaveText(
-          `Decision saved for ${journeyRecord.reference}`,
+          `Fictional decision saved for ${journeyRecord.reference}`,
         );
         await expect(page.getByRole('alert')).toContainText(
-          `Request ${journeyRecord.reference} was recorded as Priority.`,
+          `Fictional request ${journeyRecord.reference} was recorded as Priority for this demonstration.`,
         );
         await expectJavaScriptDisabled(page);
 

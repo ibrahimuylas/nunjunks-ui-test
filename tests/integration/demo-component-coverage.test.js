@@ -204,7 +204,7 @@ const item27VisibleComponentAssertions = {
     expect(html).toMatch(
       /<a\b(?=[^>]*href="\/demo")(?=[^>]*class="[^"]*\bgovuk-header__link--homepage\b[^"]*")[^>]*>/,
     );
-    expect(html).toContain('Component demo');
+    expect(html).toContain('Fictional component demo');
   },
   hint(html) {
     expect(html).toMatch(

@@ -7,7 +7,7 @@ describe('demo caseworker sign-in', () => {
     jest.restoreAllMocks();
   });
 
-  test('renders explicit fictional-authentication guidance and the password input component', async () => {
+  test('renders plain fictional-authentication guidance and the password input component', async () => {
     const response = await request(createApp()).get('/demo/casework/sign-in').expect(200);
 
     expect(response.text.match(/<h1(?:\s|>)/g)).toHaveLength(1);
@@ -15,8 +15,9 @@ describe('demo caseworker sign-in', () => {
     expect(response.text).toContain('It is not real authentication.');
     expect(response.text).toContain('Do not use a real password.');
     expect(response.text).toContain(
-      'The value is discarded immediately and only a session access flag is kept.',
+      'The made-up value is discarded immediately and is not stored.',
     );
+    expect(response.text).not.toContain('session access flag');
     expect(response.text).toMatch(
       /<a\b(?=[^>]*href="\/demo")(?=[^>]*class="[^"]*\bgovuk-back-link\b[^"]*")[^>]*>/,
     );
@@ -75,9 +76,9 @@ describe('demo caseworker sign-in', () => {
       completion: { signedIn: true },
     });
     expect(JSON.stringify(session)).not.toContain(demonstrationValue);
-    expect(
-      JSON.stringify(consoleSpies.flatMap((spy) => spy.mock.calls)),
-    ).not.toContain(demonstrationValue);
+    expect(JSON.stringify(consoleSpies.flatMap((spy) => spy.mock.calls))).not.toContain(
+      demonstrationValue,
+    );
   });
 
   test('redirects protected casework routes until access has been granted', async () => {

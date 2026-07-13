@@ -93,7 +93,7 @@ describe('demo session boundaries', () => {
     await expectSupportProfile(firstClient, 'Public First Client', 'Public Second Client');
     await expectSupportProfile(secondClient, 'Public Second Client', 'Public First Client');
     expect((await firstClient.get(firstOutcome).expect(200)).text).toContain(
-      'Request DEMO-CW-1001 was recorded as Priority.',
+      'Fictional request DEMO-CW-1001 was recorded as Priority for this demonstration.',
     );
     await secondClient.get(outcomePath('DEMO-CW-1001', 'unassigned', 1)).expect(404);
     await expectUnassignedRecord(secondClient, 'DEMO-CW-1001');
@@ -131,7 +131,7 @@ describe('demo session boundaries', () => {
     const resetEligibility = await resetClient.get(supportPaths.eligibility).expect(200);
     expect(resetEligibility.text).not.toMatch(/value="(?:eligible|ineligible)"[^>]*checked/);
     expect((await resetClient.get(retainedCaseworkOutcome).expect(200)).text).toContain(
-      'Request DEMO-CW-1001 was recorded as Priority.',
+      'Fictional request DEMO-CW-1001 was recorded as Priority for this demonstration.',
     );
     await expectLegacyJourney(resetClient, 'Legacy Reset Client');
 
@@ -141,7 +141,7 @@ describe('demo session boundaries', () => {
       'Public Reset Client',
     );
     expect((await independentClient.get(independentOutcome).expect(200)).text).toContain(
-      'Request DEMO-CW-1002 was recorded as Standard.',
+      'Fictional request DEMO-CW-1002 was recorded as Standard for this demonstration.',
     );
     await expectLegacyJourney(independentClient, 'Legacy Independent Client');
   });
@@ -183,7 +183,7 @@ describe('demo session boundaries', () => {
       'Public Casework Reset',
     );
     expect((await independentClient.get(independentOutcome).expect(200)).text).toContain(
-      'Request DEMO-CW-1002 was recorded as Standard.',
+      'Fictional request DEMO-CW-1002 was recorded as Standard for this demonstration.',
     );
     await expectLegacyJourney(independentClient, 'Legacy Casework Independent');
   });

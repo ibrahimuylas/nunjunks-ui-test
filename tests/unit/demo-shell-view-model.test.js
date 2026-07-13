@@ -11,6 +11,7 @@ describe('demo shell view model', () => {
     });
 
     expect(model.header.homepageUrl).toBe('/demo');
+    expect(model.header.productName).toBe('Fictional component demo');
     expect(model.skipLink.href).toBe('#main-content');
     expect(model.phaseBanner.tag.text).toBe('Prototype');
     expect(model.footer).toEqual({});

@@ -222,7 +222,7 @@ test.describe('caseworker progressive enhancements', () => {
     await expect(successBanner).toHaveAttribute('data-govuk-notification-banner-init', '');
     await expect(successBanner).toBeFocused();
     await expect(successBanner).toContainText(
-      `Request ${journeyRecord.reference} was recorded as Priority.`,
+      `Fictional request ${journeyRecord.reference} was recorded as Priority for this demonstration.`,
     );
 
     const returnLink = page.getByRole('link', {

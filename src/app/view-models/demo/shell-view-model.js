@@ -95,7 +95,7 @@ function demoShellViewModel({ pageTitle, navigationSection } = {}) {
     },
     header: {
       homepageUrl: '/demo',
-      productName: 'Component demo',
+      productName: 'Fictional component demo',
     },
     serviceNavigation: {
       serviceName: 'Fictional support service',

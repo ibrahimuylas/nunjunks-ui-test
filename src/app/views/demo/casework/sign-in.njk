@@ -16,7 +16,7 @@
       {% endif %}
       <h1 class="govuk-heading-xl">{{ heading }}</h1>
       <p class="govuk-body-l">This page demonstrates a password input. It is not real authentication.</p>
-      <p class="govuk-body">Use any non-empty made-up value to continue. The value is discarded immediately and only a session access flag is kept.</p>
+      <p class="govuk-body">Use any non-empty made-up value to continue. The made-up value is discarded immediately and is not stored.</p>
       <form method="post" action="/demo/casework/sign-in" novalidate>
         {{ govukPasswordInput(passwordInput) }}
         {{ govukButton({ text: "Continue" }) }}

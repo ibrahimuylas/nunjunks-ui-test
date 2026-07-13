@@ -80,10 +80,12 @@ describe('complete demo caseworker journey', () => {
     expect(outcome.text).toMatch(
       /class="[^"]*\bgovuk-notification-banner--success\b[^"]*"[^>]*role="alert"/,
     );
-    expect(outcome.text).toContain(`Request ${journeyRecord.reference} was recorded as Priority.`);
+    expect(outcome.text).toContain(
+      `Fictional request ${journeyRecord.reference} was recorded as Priority for this demonstration.`,
+    );
     expect(outcome.text).toContain(`href="${queuePath('my-requests', 1).replace('&', '&amp;')}"`);
     expect((await agent.get(savedOutcomePath).expect(200)).text).toContain(
-      `Request ${journeyRecord.reference} was recorded as Priority.`,
+      `Fictional request ${journeyRecord.reference} was recorded as Priority for this demonstration.`,
     );
 
     const returnedQueue = await agent.get(queuePath('my-requests', 1)).expect(200);
@@ -135,7 +137,9 @@ describe('complete demo caseworker journey', () => {
       decision: { decision: 'standard', caseNote: 'Recovered fictional decision.' },
     });
     const recovered = await agent.get(outcomePath('DEMO-CW-1001', 'unassigned', 1)).expect(200);
-    expect(recovered.text).toContain('Request DEMO-CW-1001 was recorded as Standard.');
+    expect(recovered.text).toContain(
+      'Fictional request DEMO-CW-1001 was recorded as Standard for this demonstration.',
+    );
   });
 
   test('guards every protected caseworker route until this session signs in', async () => {
@@ -240,6 +244,8 @@ describe('complete demo caseworker journey', () => {
     await firstAgent.get(outcomePath('DEMO-CW-1001', 'unassigned', 1)).expect(404);
 
     const unaffectedOutcome = await secondAgent.get(secondOutcomePath).expect(200);
-    expect(unaffectedOutcome.text).toContain('Request DEMO-CW-1002 was recorded as Standard.');
+    expect(unaffectedOutcome.text).toContain(
+      'Fictional request DEMO-CW-1002 was recorded as Standard for this demonstration.',
+    );
   });
 });
