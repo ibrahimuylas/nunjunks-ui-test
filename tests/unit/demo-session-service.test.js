@@ -49,9 +49,9 @@ describe('demo session service', () => {
     expect(() => demoSessionService.saveSupportValue(session, 'submittedAt', new Date())).toThrow(
       'Demo session entries must be normalized JSON values',
     );
-    expect(() =>
-      demoSessionService.saveCaseworkCompletion(session, 'signedIn', undefined),
-    ).toThrow('Demo session entries must be normalized JSON values');
+    expect(() => demoSessionService.saveCaseworkCompletion(session, 'signedIn', undefined)).toThrow(
+      'Demo session entries must be normalized JSON values',
+    );
     expect(() => demoSessionService.saveCaseworkValue(session, 'statuses', sparseValues)).toThrow(
       'Demo session entries must be normalized JSON values',
     );
@@ -246,5 +246,68 @@ describe('demo session service', () => {
       answers: { hasFarmingBusiness: 'no', receiveUpdates: 'yes' },
       complete: false,
     });
+  });
+
+  test.each([
+    ['reads support state', (session) => demoSessionService.getSupportState(session)],
+    ['reads casework state', (session) => demoSessionService.getCaseworkState(session)],
+    [
+      'saves a support value',
+      (session) => demoSessionService.saveSupportValue(session, 'eligibility', 'eligible'),
+    ],
+    [
+      'saves a casework value',
+      (session) => demoSessionService.saveCaseworkValue(session, 'selectedTab', 'completed'),
+    ],
+    [
+      'saves support completion',
+      (session) => demoSessionService.saveSupportCompletion(session, 'aboutYou', true),
+    ],
+    [
+      'saves casework completion',
+      (session) => demoSessionService.saveCaseworkCompletion(session, 'signedIn', true),
+    ],
+    ['resets support state', (session) => demoSessionService.resetSupport(session)],
+    ['resets casework state', (session) => demoSessionService.resetCasework(session)],
+    ['reads cookie preferences', (session) => demoSessionService.getCookiePreferenceState(session)],
+    [
+      'saves a cookie preference',
+      (session) => demoSessionService.saveCookiePreference(session, 'rejected'),
+    ],
+    [
+      'hides the cookie acknowledgement',
+      (session) => demoSessionService.hideCookieAcknowledgement(session),
+    ],
+  ])('preserves a pre-populated legacy journey when it %s', (description, operation) => {
+    const legacyJourney = {
+      answers: {
+        hasFarmingBusiness: 'no',
+        fullName: 'Legacy Example',
+        dateOfBirth: { day: '7', month: '9', year: '1990' },
+        receiveUpdates: 'yes',
+      },
+      complete: true,
+    };
+    const expectedLegacyJourney = JSON.parse(JSON.stringify(legacyJourney));
+    const session = {
+      journey: legacyJourney,
+      demo: {
+        support: {
+          values: { eligibility: 'eligible' },
+          completion: { aboutYou: true },
+        },
+        casework: {
+          values: { selectedTab: 'my-requests' },
+          completion: { signedIn: true },
+        },
+        cookiePreference: 'accepted',
+        cookieAcknowledgementVisible: true,
+      },
+    };
+
+    operation(session);
+
+    expect(session.journey).toBe(legacyJourney);
+    expect(session.journey).toEqual(expectedLegacyJourney);
   });
 });

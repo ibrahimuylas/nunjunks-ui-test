@@ -1,0 +1,190 @@
+const {
+  chooseEligibility,
+  completeAboutYou,
+  createSupportAgent,
+  supportPaths,
+} = require('../helpers/demo-support');
+const {
+  caseworkPaths,
+  getSelectedQueuePanel,
+  outcomePath,
+  queuePath,
+  recordDecision,
+  signInCaseworker,
+} = require('../helpers/demo-casework');
+
+async function completeLegacyJourney(agent, fullName) {
+  await agent
+    .post('/business-type')
+    .type('form')
+    .send({ hasFarmingBusiness: 'no' })
+    .expect(302)
+    .expect('Location', '/full-name');
+  await agent
+    .post('/full-name')
+    .type('form')
+    .send({
+      fullName,
+      'dateOfBirth-day': '7',
+      'dateOfBirth-month': '9',
+      'dateOfBirth-year': '1990',
+    })
+    .expect(302)
+    .expect('Location', '/updates');
+  await agent
+    .post('/updates')
+    .type('form')
+    .send({ receiveUpdates: 'yes' })
+    .expect(302)
+    .expect('Location', '/check-answers');
+}
+
+async function expectLegacyJourney(agent, fullName) {
+  const response = await agent.get('/check-answers').expect(200);
+
+  expect(response.text).toContain(fullName);
+  expect(response.text).toContain('7 9 1990');
+  expect(response.text).toMatch(/Do you have a farming business[\s\S]*?>\s*No\s*</);
+  expect(response.text).toMatch(/Receive updates[\s\S]*?>\s*Yes\s*</);
+}
+
+async function saveSupportProfile(agent, fullName) {
+  await chooseEligibility(agent);
+  await completeAboutYou(agent, { fullName });
+}
+
+async function expectSupportProfile(agent, fullName, excludedName) {
+  const eligibility = await agent.get(supportPaths.eligibility).expect(200);
+  const aboutYou = await agent.get(supportPaths.aboutYou).expect(200);
+
+  expect(eligibility.text).toMatch(/value="eligible"[^>]*checked/);
+  expect(aboutYou.text).toContain(`value="${fullName}"`);
+
+  if (excludedName) {
+    expect(aboutYou.text).not.toContain(excludedName);
+  }
+}
+
+async function expectUnassignedRecord(agent, reference) {
+  const response = await agent.get(queuePath('unassigned', 1)).expect(200);
+  const panel = getSelectedQueuePanel(response.text, 'unassigned');
+
+  expect(panel).toMatch(new RegExp(`${reference}[\\s\\S]*?>\\s*Unassigned\\s*</`));
+}
+
+describe('demo session boundaries', () => {
+  test('isolates support answers and casework decisions between independent clients', async () => {
+    const firstClient = createSupportAgent();
+    const secondClient = createSupportAgent();
+
+    await completeLegacyJourney(firstClient, 'Legacy First Client');
+    await completeLegacyJourney(secondClient, 'Legacy Second Client');
+    await saveSupportProfile(firstClient, 'Public First Client');
+    await saveSupportProfile(secondClient, 'Public Second Client');
+    await signInCaseworker(firstClient);
+    await signInCaseworker(secondClient);
+
+    const firstOutcome = await recordDecision(firstClient, {
+      reference: 'DEMO-CW-1001',
+      tab: 'unassigned',
+      decision: { decision: 'priority', caseNote: 'First client only.' },
+    });
+
+    await expectSupportProfile(firstClient, 'Public First Client', 'Public Second Client');
+    await expectSupportProfile(secondClient, 'Public Second Client', 'Public First Client');
+    expect((await firstClient.get(firstOutcome).expect(200)).text).toContain(
+      'Request DEMO-CW-1001 was recorded as Priority.',
+    );
+    await secondClient.get(outcomePath('DEMO-CW-1001', 'unassigned', 1)).expect(404);
+    await expectUnassignedRecord(secondClient, 'DEMO-CW-1001');
+    await expectLegacyJourney(firstClient, 'Legacy First Client');
+    await expectLegacyJourney(secondClient, 'Legacy Second Client');
+  });
+
+  test('public reset clears only that client public state', async () => {
+    const resetClient = createSupportAgent();
+    const independentClient = createSupportAgent();
+
+    await completeLegacyJourney(resetClient, 'Legacy Reset Client');
+    await completeLegacyJourney(independentClient, 'Legacy Independent Client');
+    await saveSupportProfile(resetClient, 'Public Reset Client');
+    await saveSupportProfile(independentClient, 'Public Independent Client');
+    await signInCaseworker(resetClient);
+    await signInCaseworker(independentClient);
+    const retainedCaseworkOutcome = await recordDecision(resetClient, {
+      reference: 'DEMO-CW-1001',
+      tab: 'unassigned',
+      decision: { decision: 'priority', caseNote: 'Preserved across public reset.' },
+    });
+    const independentOutcome = await recordDecision(independentClient, {
+      reference: 'DEMO-CW-1002',
+      tab: 'unassigned',
+      decision: { decision: 'standard', caseNote: 'Independent client state.' },
+    });
+
+    await resetClient.post(supportPaths.reset).expect(302).expect('Location', supportPaths.home);
+
+    await resetClient
+      .get(supportPaths.tasks)
+      .expect(302)
+      .expect('Location', supportPaths.eligibility);
+    const resetEligibility = await resetClient.get(supportPaths.eligibility).expect(200);
+    expect(resetEligibility.text).not.toMatch(/value="(?:eligible|ineligible)"[^>]*checked/);
+    expect((await resetClient.get(retainedCaseworkOutcome).expect(200)).text).toContain(
+      'Request DEMO-CW-1001 was recorded as Priority.',
+    );
+    await expectLegacyJourney(resetClient, 'Legacy Reset Client');
+
+    await expectSupportProfile(
+      independentClient,
+      'Public Independent Client',
+      'Public Reset Client',
+    );
+    expect((await independentClient.get(independentOutcome).expect(200)).text).toContain(
+      'Request DEMO-CW-1002 was recorded as Standard.',
+    );
+    await expectLegacyJourney(independentClient, 'Legacy Independent Client');
+  });
+
+  test('casework reset clears only that client casework state', async () => {
+    const resetClient = createSupportAgent();
+    const independentClient = createSupportAgent();
+
+    await completeLegacyJourney(resetClient, 'Legacy Casework Reset');
+    await completeLegacyJourney(independentClient, 'Legacy Casework Independent');
+    await saveSupportProfile(resetClient, 'Public Casework Reset');
+    await saveSupportProfile(independentClient, 'Public Casework Independent');
+    await signInCaseworker(resetClient);
+    await signInCaseworker(independentClient);
+    const resetOutcome = await recordDecision(resetClient, {
+      reference: 'DEMO-CW-1001',
+      tab: 'unassigned',
+      decision: { decision: 'priority', caseNote: 'Removed by casework reset.' },
+    });
+    const independentOutcome = await recordDecision(independentClient, {
+      reference: 'DEMO-CW-1002',
+      tab: 'unassigned',
+      decision: { decision: 'standard', caseNote: 'Independent client state.' },
+    });
+
+    await resetClient.post(caseworkPaths.reset).expect(302).expect('Location', caseworkPaths.home);
+
+    await resetClient.get(caseworkPaths.queue).expect(302).expect('Location', caseworkPaths.signIn);
+    await resetClient.get(resetOutcome).expect(302).expect('Location', caseworkPaths.signIn);
+    await signInCaseworker(resetClient);
+    await resetClient.get(resetOutcome).expect(404);
+    await expectUnassignedRecord(resetClient, 'DEMO-CW-1001');
+    await expectSupportProfile(resetClient, 'Public Casework Reset');
+    await expectLegacyJourney(resetClient, 'Legacy Casework Reset');
+
+    await expectSupportProfile(
+      independentClient,
+      'Public Casework Independent',
+      'Public Casework Reset',
+    );
+    expect((await independentClient.get(independentOutcome).expect(200)).text).toContain(
+      'Request DEMO-CW-1002 was recorded as Standard.',
+    );
+    await expectLegacyJourney(independentClient, 'Legacy Casework Independent');
+  });
+});
