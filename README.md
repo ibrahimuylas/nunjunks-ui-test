@@ -227,7 +227,7 @@ GOV.UK Frontend is installed from npm. Nunjucks is configured with both the app 
 The Sass entry point is `src/app/public/stylesheets/application.scss`. It imports GOV.UK Frontend and sets:
 
 ```scss
-$govuk-assets-path: "/public/assets/";
+$govuk-assets-path: '/public/assets/';
 ```
 
 `npm run build` compiles `application.css`, copies GOV.UK Frontend JavaScript to `src/app/public/javascripts/govuk-frontend.min.js`, and copies GOV.UK assets to `src/app/public/assets`.
