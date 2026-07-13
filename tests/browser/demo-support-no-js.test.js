@@ -33,6 +33,10 @@ test.describe('public support journey without JavaScript', () => {
     test.use({ viewport: VIEWPORTS.desktop });
 
     test('recovers from validation errors and completes the eligible journey', async ({ page }) => {
+      // This check completes every public form plus validation recovery, so it
+      // needs more than the shared smoke-test budget on constrained runners.
+      test.setTimeout(60_000);
+
       await startSupportJourney(page);
 
       await page.getByRole('button', { name: 'Continue' }).click();
