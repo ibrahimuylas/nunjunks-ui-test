@@ -67,11 +67,9 @@ namespace. Open `/demo` to choose between these stable scenario entry points:
 - `/demo/support/start` — the public support-request journey
 - `/demo/casework/sign-in` — the caseworker triage journey
 
-The public journey is complete. The caseworker sign-in is available, while its queue and request
-pages are delivered in later increments. The demo shell uses neutral fictional branding and tells
-visitors not to enter real personal information or passwords. Its header and service navigation
-always provide a route back to `/demo`. The existing `/start` journey and all of its URLs remain
-unchanged.
+Both demo journeys are complete. The demo shell uses neutral fictional branding and tells visitors
+not to enter real personal information or passwords. Its header and service navigation always
+provide a route back to `/demo`. The existing `/start` journey and all of its URLs remain unchanged.
 
 The caseworker sign-in is a component demonstration, not real authentication. It accepts any
 non-empty made-up value after trimming surrounding whitespace, discards that value immediately and
@@ -79,6 +77,37 @@ does not write it to the session or application logs. Only a boolean access flag
 casework session. Protected casework URLs redirect to `/demo/casework/sign-in` until that flag is
 present, and resetting the caseworker journey clears it without changing the public or legacy
 journeys.
+
+The complete caseworker route graph is:
+
+```text
+/demo
+  |
+  |-- /demo/casework/sign-in
+  |             |
+  |             `-- POST --> /demo/casework/queue
+  |                              |
+  |                              |-- ?tab=unassigned&page=1
+  |                              |-- ?tab=my-requests&page=1..n
+  |                              `-- ?tab=completed&page=1..n
+  |                                         |
+  |                         /demo/casework/requests/:reference
+  |                                         |
+  |                         /demo/casework/requests/:reference/decision
+  |                                         |
+  |                                  POST --`-- /decision/outcome
+  |                                                   |
+  |                                                   `-- return to queue tab/page
+  |
+  `-- POST /demo/casework/reset --> /demo
+```
+
+Queue tabs and pagination use allow-listed `tab` and positive `page` query parameters. Request,
+decision and outcome links carry only that validated context; invalid or extraneous context is
+redirected to a canonical URL. A saved decision uses POST-redirect-GET, moves the fictional record
+to `Completed`, and persists its status and optional normalized case note only in the current
+casework session. Refreshing the outcome does not repeat the decision. The caseworker reset restores
+the seeded records and clears fictional access and outcomes without changing the public journey.
 
 The public journey now starts with an explicitly fictional eligibility branch:
 
