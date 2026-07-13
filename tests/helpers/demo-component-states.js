@@ -1,7 +1,7 @@
 const request = require('supertest');
 const { createApp } = require('../../src/app/app');
 const { signInCaseworker } = require('./demo-casework');
-const { chooseEligibility, completeRequiredSections } = require('./demo-support');
+const { chooseEligibility, completeAboutYou, completeRequiredSections } = require('./demo-support');
 
 const requestReference = 'DEMO-CW-1001';
 
@@ -77,6 +77,32 @@ const stateRenderers = new Map([
     },
   ],
   ['/demo/casework/sign-in::default', (agent, entry) => getRoute(agent, entry.route)],
+  [
+    '/demo/support/check-answers::default',
+    async (agent, entry) => {
+      await chooseEligibility(agent);
+      await completeRequiredSections(agent);
+
+      return getRoute(agent, entry.route);
+    },
+  ],
+  [
+    '/demo/casework/queue::unassigned',
+    async (agent, entry) => {
+      await signInCaseworker(agent);
+      return getRoute(agent, entry.route);
+    },
+  ],
+  [
+    '/demo/support/tasks::mixed-statuses',
+    async (agent, entry) => {
+      await chooseEligibility(agent);
+      await completeAboutYou(agent);
+      await getRoute(agent, '/demo/support/support-needs');
+
+      return getRoute(agent, entry.route);
+    },
+  ],
 ]);
 
 async function renderDemoComponentState(entry) {
