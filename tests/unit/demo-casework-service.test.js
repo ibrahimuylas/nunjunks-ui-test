@@ -1,0 +1,155 @@
+const path = require('node:path');
+const {
+  demoCaseworkPageSize,
+  demoCaseworkRecords,
+  demoCaseworkStatuses,
+  demoCaseworkTabs,
+  demoCaseworkUrgencies,
+} = require('../../src/app/config/demo-casework-records');
+const demoCaseworkService = require('../../src/app/services/demo-casework-service');
+
+const allowedSupportTypes = new Set([
+  'Somewhere safe to stay',
+  'Help to stay safe',
+  'Food and essential items',
+  'Health and wellbeing support',
+]);
+const completedStatuses = new Set(['priority', 'standard', 'more-information-needed']);
+
+function allNestedValuesAreFrozen(value) {
+  if (value === null || typeof value !== 'object') {
+    return true;
+  }
+
+  return Object.isFrozen(value) && Object.values(value).every(allNestedValuesAreFrozen);
+}
+
+function collectKeys(value) {
+  if (value === null || typeof value !== 'object') {
+    return [];
+  }
+
+  return [
+    ...Object.keys(value),
+    ...Object.values(value).flatMap((nestedValue) => collectKeys(nestedValue)),
+  ];
+}
+
+describe('demo casework service', () => {
+  test('provides a deeply immutable and valid fictional fixture set', () => {
+    const references = new Set();
+
+    expect(demoCaseworkRecords).toHaveLength(18);
+    expect(allNestedValuesAreFrozen(demoCaseworkRecords)).toBe(true);
+
+    demoCaseworkRecords.forEach((record) => {
+      expect(record).toEqual({
+        reference: expect.stringMatching(/^DEMO-CW-\d{4}$/),
+        applicantAlias: expect.stringMatching(/^Demo household [A-Z][a-z]+$/),
+        receivedDate: expect.stringMatching(/^\d{4}-\d{2}-\d{2}$/),
+        urgency: expect.any(String),
+        status: expect.any(String),
+        queue: expect.any(String),
+        summary: {
+          household: expect.stringContaining('Fictional household'),
+          supportTypes: expect.any(Array),
+          description: expect.stringContaining('Demonstration request'),
+          additionalInformation: expect.any(String),
+        },
+        auditText: expect.stringMatching(/[Ff]ictional|[Dd]emonstration/),
+        evidenceFilename: expect.stringMatching(/^[a-z0-9][a-z0-9._-]*\.(pdf|jpg|png)$/),
+      });
+      expect(references.has(record.reference)).toBe(false);
+      expect(demoCaseworkTabs).toContain(record.queue);
+      expect(demoCaseworkUrgencies).toContain(record.urgency);
+      expect(demoCaseworkStatuses).toContain(record.status);
+      expect(record.summary.supportTypes.length).toBeGreaterThan(0);
+      expect(record.summary.supportTypes.every((type) => allowedSupportTypes.has(type))).toBe(true);
+      expect(path.basename(record.evidenceFilename)).toBe(record.evidenceFilename);
+      expect(Number.isNaN(Date.parse(`${record.receivedDate}T00:00:00Z`))).toBe(false);
+
+      if (record.queue === 'unassigned') {
+        expect(record.status).toBe('unassigned');
+      } else if (record.queue === 'my-requests') {
+        expect(record.status).toBe('assigned');
+      } else {
+        expect(completedStatuses.has(record.status)).toBe(true);
+      }
+
+      references.add(record.reference);
+    });
+
+    expect(collectKeys(demoCaseworkRecords)).not.toEqual(
+      expect.arrayContaining(['buffer', 'contents', 'fileContents', 'password', 'path']),
+    );
+  });
+
+  test.each(demoCaseworkTabs)('seeds enough %s records to require pagination', (tab) => {
+    const records = demoCaseworkRecords.filter((record) => record.queue === tab);
+
+    expect(records).toHaveLength(6);
+    expect(records.length).toBeGreaterThan(demoCaseworkPageSize);
+  });
+
+  test('clones the fixtures lazily into a casework session', () => {
+    const session = {};
+
+    expect(session.demo).toBeUndefined();
+
+    const records = demoCaseworkService.getRecords(session);
+
+    expect(records).toEqual(demoCaseworkRecords);
+    expect(session.demo.casework.values.records).toEqual(demoCaseworkRecords);
+    expect(session.demo.casework.values.records).not.toBe(demoCaseworkRecords);
+    expect(session.demo.casework.values.records[0]).not.toBe(demoCaseworkRecords[0]);
+    expect(session.demo.casework.completion).toEqual({});
+  });
+
+  test('isolates stored records and returned snapshots between sessions', () => {
+    const firstSession = {};
+    const secondSession = {};
+    const firstRecords = demoCaseworkService.getRecords(firstSession);
+
+    demoCaseworkService.getRecords(secondSession);
+    firstRecords[0].summary.supportTypes.push('Changed through a returned snapshot');
+    firstSession.demo.casework.values.records[0].status = 'changed-in-first-session';
+
+    expect(demoCaseworkService.getRecords(firstSession)[0].summary.supportTypes).toEqual(
+      demoCaseworkRecords[0].summary.supportTypes,
+    );
+    expect(demoCaseworkService.getRecords(firstSession)[0].status).toBe('changed-in-first-session');
+    expect(demoCaseworkService.getRecords(secondSession)[0]).toEqual(demoCaseworkRecords[0]);
+    expect(secondSession.demo.casework.values.records).not.toBe(
+      firstSession.demo.casework.values.records,
+    );
+    expect(demoCaseworkRecords[0].status).toBe('unassigned');
+  });
+
+  test('restores pristine records with a casework-only reset', () => {
+    const legacyJourney = { answers: { fullName: 'Legacy User' }, complete: true };
+    const support = {
+      values: { eligibility: 'eligible' },
+      completion: { aboutYou: true },
+    };
+    const session = {
+      journey: legacyJourney,
+      demo: {
+        support,
+        cookiePreference: 'accepted',
+      },
+    };
+
+    demoCaseworkService.getRecords(session);
+    session.demo.casework.values.records[0].status = 'changed-in-session';
+    session.demo.casework.completion.signedIn = true;
+
+    demoCaseworkService.reset(session);
+
+    expect(session.demo.casework).toEqual({ values: {}, completion: {} });
+    expect(session.demo.support).toBe(support);
+    expect(session.demo.cookiePreference).toBe('accepted');
+    expect(session.journey).toBe(legacyJourney);
+    expect(demoCaseworkService.getRecords(session)).toEqual(demoCaseworkRecords);
+    expect(session.demo.casework.completion).toEqual({});
+  });
+});
