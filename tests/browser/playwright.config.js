@@ -6,6 +6,7 @@ const repositoryRoot = path.resolve(__dirname, '../..');
 const baseURL = 'http://[::1]:3000';
 const javaScriptOnlyTests = [
   '**/demo-shared-components.test.js',
+  '**/demo-support-accessibility.test.js',
   '**/demo-support-enhancements.test.js',
 ];
 
