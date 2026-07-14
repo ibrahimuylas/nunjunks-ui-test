@@ -1,4 +1,5 @@
 {% extends "demo/layouts/main.njk" %}
+{% from "govuk/components/button/macro.njk" import govukButton %}
 {% from "govuk/components/panel/macro.njk" import govukPanel %}
 
 {% block content %}
@@ -8,6 +9,9 @@
       <h2 class="govuk-heading-m">What happens next</h2>
       <p class="govuk-body">In a real service, the information could be reviewed and the applicant could be contacted about next steps.</p>
       <p class="govuk-body">This demonstration has not sent the request to a housing service, caseworker or external system.</p>
+      <form method="post" action="{{ startAnotherFormAction }}" novalidate>
+        {{ govukButton(startAnotherButton) }}
+      </form>
       <p class="govuk-body"><a class="govuk-link" href="{{ demoHomeLink.href }}">{{ demoHomeLink.text }}</a></p>
     </div>
   </div>

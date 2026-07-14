@@ -1,12 +1,18 @@
 const {
   chooseEligibility,
   completeAboutYou,
+  completeEvidence,
+  completeSupportNeeds,
   createSupportAgent,
+  expectTaskStatus,
+  extractReference,
   supportPaths,
 } = require('../helpers/demo-support');
 const {
   caseworkPaths,
+  expectSelectedQueue,
   getSelectedQueuePanel,
+  journeyRecord,
   outcomePath,
   queuePath,
   recordDecision,
@@ -144,6 +150,95 @@ describe('demo session boundaries', () => {
       'Fictional request DEMO-CW-1002 was recorded as Standard for this demonstration.',
     );
     await expectLegacyJourney(independentClient, 'Legacy Independent Client');
+  });
+
+  test('confirmation restart preserves same-session casework state', async () => {
+    const agent = createSupportAgent();
+    const previousFullName = 'Public and Casework Boundary';
+    const previousDescription = 'Distinctive same-session boundary description';
+    const previousEvidenceFilename = 'same-session-boundary-evidence.pdf';
+    const originalQueuePath = queuePath('my-requests', 1);
+
+    await chooseEligibility(agent);
+    await completeAboutYou(agent, { fullName: previousFullName });
+    await completeSupportNeeds(agent, { description: previousDescription });
+    await completeEvidence(agent, { filename: previousEvidenceFilename });
+    await agent
+      .post(supportPaths.checkAnswers)
+      .expect(302)
+      .expect('Location', supportPaths.confirmation);
+    const previousReference = extractReference(
+      (await agent.get(supportPaths.confirmation).expect(200)).text,
+    );
+
+    expect(previousReference).toMatch(/^DEMO-[A-F0-9]{8}$/);
+
+    await signInCaseworker(agent);
+    const retainedCaseworkOutcome = await recordDecision(agent, {
+      reference: journeyRecord.reference,
+      tab: 'my-requests',
+      page: 1,
+      decision: {
+        decision: 'priority',
+        caseNote: 'Preserved across the confirmation restart.',
+      },
+    });
+
+    await agent
+      .post(supportPaths.startAnother)
+      .expect(302)
+      .expect('Location', supportPaths.start);
+    await agent
+      .get(supportPaths.confirmation)
+      .expect(302)
+      .expect('Location', supportPaths.eligibility);
+
+    const restartedEligibility = await agent.get(supportPaths.eligibility).expect(200);
+    expect(restartedEligibility.text).not.toMatch(
+      /value="(?:eligible|ineligible)"[^>]*checked/,
+    );
+    expect(restartedEligibility.text).not.toContain(previousReference);
+
+    await chooseEligibility(agent);
+    const restartedTasks = await agent.get(supportPaths.tasks).expect(200);
+    expectTaskStatus(restartedTasks.text, 'About you', 'Not started', supportPaths.aboutYou);
+    expectTaskStatus(
+      restartedTasks.text,
+      'Support needs',
+      'Not started',
+      supportPaths.supportNeeds,
+    );
+    expectTaskStatus(restartedTasks.text, 'Evidence', 'Not started', supportPaths.evidence);
+    expectTaskStatus(restartedTasks.text, 'Check your answers', 'Cannot start yet');
+    expect(restartedTasks.text).not.toContain(previousReference);
+
+    const restartedAboutYou = await agent.get(supportPaths.aboutYou).expect(200);
+    expect(restartedAboutYou.text).not.toContain(previousFullName);
+    expect(restartedAboutYou.text).not.toContain(previousReference);
+
+    const restartedSupportNeeds = await agent.get(supportPaths.supportNeeds).expect(200);
+    expect(restartedSupportNeeds.text).not.toContain(previousDescription);
+    expect(restartedSupportNeeds.text).not.toContain(previousReference);
+
+    const restartedEvidence = await agent.get(supportPaths.evidence).expect(200);
+    expect(restartedEvidence.text).not.toContain(previousEvidenceFilename);
+    expect(restartedEvidence.text).not.toContain(previousReference);
+
+    const retainedQueue = await agent.get(originalQueuePath).expect(200);
+    expectSelectedQueue(retainedQueue.text, 'my-requests', 'My requests');
+    expect(retainedQueue.text).toMatch(
+      new RegExp(
+        `${journeyRecord.reference}[\\s\\S]*?<strong\\b[^>]*class="[^"]*\\bgovuk-tag--red\\b[^"]*"[^>]*>\\s*Priority\\s*</strong>`,
+      ),
+    );
+
+    const retainedOutcome = await agent.get(retainedCaseworkOutcome).expect(200);
+    expect(retainedOutcome.text).toContain(
+      `Fictional request ${journeyRecord.reference} was recorded as Priority for this demonstration.`,
+    );
+    expect(retainedOutcome.text).toContain(
+      `href="${originalQueuePath.replace('&', '&amp;')}"`,
+    );
   });
 
   test('casework reset clears only that client casework state', async () => {

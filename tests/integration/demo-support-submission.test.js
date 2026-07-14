@@ -1,7 +1,8 @@
 const request = require('supertest');
 const { createApp } = require('../../src/app/app');
+const { supportPaths } = require('../helpers/demo-support');
 
-const confirmationPath = '/demo/support/confirmation';
+const confirmationPath = supportPaths.confirmation;
 
 async function chooseEligible(agent) {
   await agent
@@ -86,6 +87,12 @@ describe('demo support submission and confirmation', () => {
     expect(confirmation.text).toContain('Fictional request submitted');
     expect(confirmation.text).toContain('What happens next');
     expect(confirmation.text).toContain('has not sent the request');
+    expect(confirmation.text).toMatch(
+      /<form\b(?=[^>]*method="post")(?=[^>]*action="\/demo\/support\/start-another")(?=[^>]*novalidate)[^>]*>/,
+    );
+    expect(confirmation.text).toMatch(
+      /<button\b(?=[^>]*class="[^"]*\bgovuk-button--secondary\b[^"]*")[^>]*>\s*Start another fictional request\s*<\/button>/,
+    );
     expect(confirmation.text).toContain('href="/demo"');
     expect(confirmation.text).toContain('Return to demo home');
 
@@ -98,6 +105,22 @@ describe('demo support submission and confirmation', () => {
 
     const tasks = await agent.get('/demo/support/tasks').expect(200);
     expect(tasks.text).toMatch(/Check your answers[\s\S]*?Completed/);
+  });
+
+  test('starts another request through a POST-only action and redirects to the start page', async () => {
+    const agent = request.agent(createApp());
+    await completeRequiredSections(agent);
+    await agent.post('/demo/support/check-answers').expect(302);
+
+    await agent.get(supportPaths.startAnother).expect(404);
+    await agent
+      .post(supportPaths.startAnother)
+      .expect(302)
+      .expect('Location', supportPaths.start);
+
+    const startPage = await agent.get(supportPaths.start).expect(200);
+    expect(startPage.text).toContain('Request emergency housing support');
+    expect(startPage.text).toContain('Start now');
   });
 
   test('invalidates confirmation after an edit and reset', async () => {

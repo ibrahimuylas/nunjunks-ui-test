@@ -14,6 +14,11 @@ describe('demo support confirmation page view model', () => {
       titleText: 'Fictional request submitted',
       text: 'Your fictional reference is DEMO-A1B2C3D4',
     });
+    expect(viewModel.startAnotherFormAction).toBe('/demo/support/start-another');
+    expect(viewModel.startAnotherButton).toEqual({
+      text: 'Start another fictional request',
+      classes: 'govuk-button--secondary',
+    });
     expect(viewModel.demoHomeLink).toEqual({
       text: 'Return to demo home',
       href: '/demo',

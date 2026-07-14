@@ -42,4 +42,14 @@ function showConfirmation(req, res) {
   );
 }
 
-module.exports = { showCheckAnswers, showConfirmation, submitCheckAnswers };
+function startAnotherSupportRequest(req, res) {
+  journeyService.resetDemoSupport(req.session);
+  return res.redirect('/demo/support/start');
+}
+
+module.exports = {
+  showCheckAnswers,
+  showConfirmation,
+  startAnotherSupportRequest,
+  submitCheckAnswers,
+};

@@ -17,6 +17,7 @@ const supportPaths = Object.freeze({
   evidenceChange: '/demo/support/evidence/change',
   checkAnswers: '/demo/support/check-answers',
   confirmation: '/demo/support/confirmation',
+  startAnother: '/demo/support/start-another',
   reset: '/demo/support/reset',
 });
 

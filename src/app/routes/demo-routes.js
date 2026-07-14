@@ -75,6 +75,7 @@ router.use('/support/check-answers', taskListController.requireSupportStep('chec
 router.get('/support/check-answers', checkAnswersController.showCheckAnswers);
 router.post('/support/check-answers', checkAnswersController.submitCheckAnswers);
 router.get('/support/confirmation', checkAnswersController.showConfirmation);
+router.post('/support/start-another', checkAnswersController.startAnotherSupportRequest);
 router.post('/support/reset', homeController.resetSupport);
 router.get('/casework/sign-in', caseworkSignInController.showSignIn);
 router.post('/casework/sign-in', caseworkSignInController.submitSignIn);

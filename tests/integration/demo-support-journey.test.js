@@ -47,6 +47,23 @@ function expectLinkedError(response, href, message, fieldErrorId = href.slice(1)
 describe('complete demo support journey', () => {
   test('completes, reviews, submits and resets the eligible journey', async () => {
     const agent = createSupportAgent();
+    const previousAboutYou = {
+      fullName: 'Taylor Repeat Demo',
+      'dateOfBirth-day': '11',
+      'dateOfBirth-month': '12',
+      'dateOfBirth-year': '1987',
+      country: 'northern-ireland',
+    };
+    const changedAboutYou = {
+      ...previousAboutYou,
+      fullName: 'Jordan Repeat Demo',
+    };
+    const previousSupportNeeds = {
+      supportTypes: ['personal-safety', 'essential-items'],
+      description: 'Distinctive support description before starting another request',
+      additionalInformation: 'Distinctive additional information before the reset',
+    };
+    const previousEvidenceFilename = 'distinctive-repeat-demo-evidence.png';
 
     const home = await agent.get(supportPaths.home).expect(200);
     expect(home.text).toContain(`href="${supportPaths.start}"`);
@@ -72,7 +89,7 @@ describe('complete demo support journey', () => {
     expectBackLink(aboutYou.text, supportPaths.tasks);
     tasks = await agent.get(supportPaths.tasks).expect(200);
     expectTaskStatus(tasks.text, 'About you', 'In progress', supportPaths.aboutYou);
-    await completeAboutYou(agent);
+    await completeAboutYou(agent, previousAboutYou);
     tasks = await agent.get(supportPaths.tasks).expect(200);
     expectTaskStatus(tasks.text, 'About you', 'Completed', supportPaths.aboutYou);
 
@@ -80,7 +97,7 @@ describe('complete demo support journey', () => {
     expectBackLink(supportNeeds.text, supportPaths.tasks);
     tasks = await agent.get(supportPaths.tasks).expect(200);
     expectTaskStatus(tasks.text, 'Support needs', 'In progress', supportPaths.supportNeeds);
-    await completeSupportNeeds(agent);
+    await completeSupportNeeds(agent, previousSupportNeeds);
     tasks = await agent.get(supportPaths.tasks).expect(200);
     expectTaskStatus(tasks.text, 'Support needs', 'Completed', supportPaths.supportNeeds);
 
@@ -88,7 +105,10 @@ describe('complete demo support journey', () => {
     expectBackLink(evidence.text, supportPaths.supportNeeds);
     tasks = await agent.get(supportPaths.tasks).expect(200);
     expectTaskStatus(tasks.text, 'Evidence', 'In progress', supportPaths.evidence);
-    await completeEvidence(agent);
+    await completeEvidence(agent, {
+      filename: previousEvidenceFilename,
+      contentType: 'image/png',
+    });
 
     tasks = await agent.get(supportPaths.tasks).expect(200);
     expectTaskStatus(tasks.text, 'Evidence', 'Completed', supportPaths.evidence);
@@ -96,9 +116,14 @@ describe('complete demo support journey', () => {
 
     const checkAnswers = await agent.get(supportPaths.checkAnswers).expect(200);
     expectBackLink(checkAnswers.text, supportPaths.tasks);
-    expect(checkAnswers.text).toContain('Alex Example');
-    expect(checkAnswers.text).toContain('A fictional support description');
-    expect(checkAnswers.text).toContain('fictional-support-evidence.pdf');
+    expect(checkAnswers.text).toContain(previousAboutYou.fullName);
+    expect(checkAnswers.text).toContain('11 December 1987');
+    expect(checkAnswers.text).toContain('Northern Ireland');
+    expect(checkAnswers.text).toContain('Help to stay safe');
+    expect(checkAnswers.text).toContain('Food and essential items');
+    expect(checkAnswers.text).toContain(previousSupportNeeds.description);
+    expect(checkAnswers.text).toContain(previousSupportNeeds.additionalInformation);
+    expect(checkAnswers.text).toContain(previousEvidenceFilename);
     tasks = await agent.get(supportPaths.tasks).expect(200);
     expectTaskStatus(tasks.text, 'Check your answers', 'In progress', supportPaths.checkAnswers);
 
@@ -125,7 +150,7 @@ describe('complete demo support journey', () => {
     tasks = await agent.get(supportPaths.tasks).expect(200);
     expectTaskStatus(tasks.text, 'Check your answers', 'Completed', supportPaths.checkAnswers);
 
-    await completeAboutYou(agent, { fullName: 'Jordan Example' }, supportPaths.aboutYouChange);
+    await completeAboutYou(agent, changedAboutYou, supportPaths.aboutYouChange);
     await agent
       .get(supportPaths.confirmation)
       .expect(302)
@@ -139,6 +164,75 @@ describe('complete demo support journey', () => {
     );
     expect(secondReference).toMatch(/^DEMO-[A-F0-9]{8}$/);
     expect(secondReference).not.toBe(firstReference);
+
+    const completedAnswers = await agent.get(supportPaths.checkAnswers).expect(200);
+    expect(completedAnswers.text).toContain(changedAboutYou.fullName);
+    expect(completedAnswers.text).toContain('11 December 1987');
+    expect(completedAnswers.text).toContain('Northern Ireland');
+    expect(completedAnswers.text).toContain(previousSupportNeeds.description);
+    expect(completedAnswers.text).toContain(previousSupportNeeds.additionalInformation);
+    expect(completedAnswers.text).toContain(previousEvidenceFilename);
+
+    await agent
+      .post(supportPaths.startAnother)
+      .expect(302)
+      .expect('Location', supportPaths.start);
+    await agent
+      .get(supportPaths.confirmation)
+      .expect(302)
+      .expect('Location', supportPaths.eligibility);
+
+    const restartedEligibility = await agent.get(supportPaths.eligibility).expect(200);
+    expect(restartedEligibility.text).not.toMatch(/value="eligible"[^>]*checked/);
+    expect(restartedEligibility.text).not.toMatch(/value="ineligible"[^>]*checked/);
+
+    await chooseEligibility(agent);
+    tasks = await agent.get(supportPaths.tasks).expect(200);
+    expectTaskStatus(tasks.text, 'About you', 'Not started', supportPaths.aboutYou);
+    expectTaskStatus(tasks.text, 'Support needs', 'Not started', supportPaths.supportNeeds);
+    expectTaskStatus(tasks.text, 'Evidence', 'Not started', supportPaths.evidence);
+    expectTaskStatus(tasks.text, 'Check your answers', 'Cannot start yet');
+
+    const restartedAboutYou = await agent.get(supportPaths.aboutYou).expect(200);
+    expect(restartedAboutYou.text).not.toContain(changedAboutYou.fullName);
+    for (const [name, value] of [
+      ['dateOfBirth-day', changedAboutYou['dateOfBirth-day']],
+      ['dateOfBirth-month', changedAboutYou['dateOfBirth-month']],
+      ['dateOfBirth-year', changedAboutYou['dateOfBirth-year']],
+    ]) {
+      expect(restartedAboutYou.text).not.toMatch(
+        new RegExp(`<input\\b(?=[^>]*name="${name}")(?=[^>]*value="${value}")[^>]*>`),
+      );
+    }
+    expect(restartedAboutYou.text).not.toMatch(
+      /<option\b(?=[^>]*value="northern-ireland")(?=[^>]*selected)[^>]*>/,
+    );
+
+    const restartedSupportNeeds = await agent.get(supportPaths.supportNeeds).expect(200);
+    for (const supportType of previousSupportNeeds.supportTypes) {
+      expect(restartedSupportNeeds.text).not.toMatch(
+        new RegExp(`<input\\b(?=[^>]*value="${supportType}")(?=[^>]*checked)[^>]*>`),
+      );
+    }
+    expect(restartedSupportNeeds.text).not.toContain(previousSupportNeeds.description);
+    expect(restartedSupportNeeds.text).not.toContain(previousSupportNeeds.additionalInformation);
+
+    const restartedEvidence = await agent.get(supportPaths.evidence).expect(200);
+    expect(restartedEvidence.text).not.toContain('Selected demonstration file:');
+    expect(restartedEvidence.text).not.toContain(previousEvidenceFilename);
+
+    await completeAboutYou(agent);
+    await completeSupportNeeds(agent);
+    await completeEvidenceWithoutFile(agent);
+    await agent
+      .post(supportPaths.checkAnswers)
+      .expect(302)
+      .expect('Location', supportPaths.confirmation);
+    const restartedReference = extractReference(
+      (await agent.get(supportPaths.confirmation).expect(200)).text,
+    );
+    expect(restartedReference).toMatch(/^DEMO-[A-F0-9]{8}$/);
+    expect(restartedReference).not.toBe(secondReference);
 
     await agent.post(supportPaths.reset).expect(302).expect('Location', supportPaths.home);
     await agent.get(supportPaths.tasks).expect(302).expect('Location', supportPaths.eligibility);
